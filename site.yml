@@ -17,7 +17,7 @@
 # Note that some values are different in development
 # ansible development -m debug -a 'var=rds_admin_password'
 #
-# To encrypt a variable to the default vault id (requires ansible >=2.5.0):
+# To encrypt a variable to the default vault id:
 #   ansible-vault encrypt_string --encrypt-vault-id default --name name secret
 # To encrypt a variable to the EC2 vault id:
 #   ansible-vault encrypt_string --encrypt-vault-id ec2 --name name secret
@@ -59,11 +59,10 @@
       when: ansible_distribution_release in ['focal', 'jammy']
 
     - name: Get information about the Mysql 5 instance
-      rds:
+      community.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: main-database
+        db_instance_identifier: main-database
         region: "{{ ec2_region }}"
       register: rds_mysql5
       # Run this task even when running ansible-playbook with "--check"
@@ -71,11 +70,10 @@
       when: "'requires_mysql' in group_names"
     
     - name: Get information about the Mysql 8 instance
-      rds:
+      community.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: maindb
+        db_instance_identifier: maindb
         region: "{{ ec2_region }}"
       register: rds_mysql8
       # Run this task even when running ansible-playbook with "--check"
@@ -84,11 +82,10 @@
 
 
     - name: Get information about the postgresql RDS instance
-      rds:
+      community.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: postgresql
+        db_instance_identifier: postgresql
         region: "{{ ec2_region }}"
       register: rds_postgresql
       # Run this task even when running ansible-playbook with "--check"
@@ -96,11 +93,10 @@
       when: "'requires_postgresql' in group_names"
 
     - name: Get information about the planningalerts RDS instance
-      rds:
+      community.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: planningalerts
+        db_instance_identifier: planningalerts
         region: "{{ ec2_region }}"
       register: rds_planningalerts
       # Run this task even when running ansible-playbook with "--check"
