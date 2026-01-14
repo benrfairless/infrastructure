@@ -1,7 +1,7 @@
 pip~=24.0
-# Upgraded to Ansible 10.x (ansible-core 2.17) for latest security updates
-# and support for Python 3.12+
-ansible~=10.0
+# Upgraded to Ansible 13.x for latest security updates
+# and support for Python 3.8+
+ansible~=13.0
 boto3
 botocore
 virtualenv~=20.34.0
