@@ -1,10 +1,6 @@
-.PHONY: ALL venv roles production letsencrypt retry clean clean-all macos-keybase tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
+.PHONY: ALL venv roles production letsencrypt retry clean clean-all check-1password tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
 ALL: roles .vagrant
-KEYSANDROLES := .keybase roles
 
-.keybase:
-	ln -sf $(shell keybase config get -d -b mountdir) .keybase
-	
 .vagrant:
 	VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-hostsupdater
 	touch .vagrant
@@ -25,78 +21,80 @@ roles/external: venv collections roles/requirements.yml
 
 roles: roles/external
 
-production: $(KEYSANDROLES)
+production: roles
 	.venv/bin/ansible-playbook site.yml
 
-letsencrypt: $(KEYSANDROLES)
+letsencrypt: roles
 	.venv/bin/ansible-playbook update-ssl-certs.yml
 
-retry: $(KEYSANDROLES) site.retry
+retry: roles site.retry
 	.venv/bin/ansible-playbook site.yml -l @site.retry
 
 clean:
-	rm -rf .venv roles/external site.retry collections .keybase
-	
+	rm -rf .venv roles/external site.retry collections
+
 clean-all: clean
 	rm -rf .vagrant
 
-# Configure Keybase for MacOS
-macos-keybase:
-	ln -sf /Volumes/Keybase .keybase
+# Check 1Password CLI is installed and authenticated
+check-1password:
+	@which op > /dev/null || (echo "1Password CLI not found. Install from https://developer.1password.com/docs/cli/get-started/" && exit 1)
+	@op account list > /dev/null 2>&1 || (echo "Not authenticated with 1Password. Run: eval \$$(op signin)" && exit 1)
+	@echo "✓ 1Password CLI is installed and authenticated"
 
-# Terraform
+# OpenTofu (Terraform alternative)
 tf-init:
-	terraform -chdir=terraform init
+	tofu -chdir=terraform init
 tf-plan:
-	terraform -chdir=terraform plan
+	tofu -chdir=terraform plan
 tf-apply:
-	terraform -chdir=terraform apply
+	tofu -chdir=terraform apply
 
 # Checks only
-check-righttoknow-all: $(KEYSANDROLES)
+check-righttoknow-all: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --check --diff
-check-righttoknow-staging: $(KEYSANDROLES)
+check-righttoknow-staging: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --check --diff
-check-righttoknow-prod: $(KEYSANDROLES)
+check-righttoknow-prod: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --check --diff
-check-planningalerts: $(KEYSANDROLES)
+check-planningalerts: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --check --diff
-check-theyvoteforyou: $(KEYSANDROLES)
+check-theyvoteforyou: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --check --diff
-check-oaf: $(KEYSANDROLES)
+check-oaf: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --check --diff
-check-openaustralia: $(KEYSANDROLES)
+check-openaustralia: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --check --diff
-check-metabase: $(KEYSANDROLES)
+check-metabase: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --check --diff
 
-# These make changes 
-apply-righttoknow-all: $(KEYSANDROLES)
+# These make changes
+apply-righttoknow-all: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --diff
-apply-righttoknow-staging: $(KEYSANDROLES)
+apply-righttoknow-staging: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --diff
-apply-righttoknow-prod: $(KEYSANDROLES)
+apply-righttoknow-prod: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --diff
-apply-planningalerts: $(KEYSANDROLES)
+apply-planningalerts: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --diff
-apply-theyvoteforyou: $(KEYSANDROLES)
+apply-theyvoteforyou: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --diff
-apply-oaf: $(KEYSANDROLES)
+apply-oaf: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --diff
-apply-openaustralia: $(KEYSANDROLES)
+apply-openaustralia: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --diff
-apply-metabase: $(KEYSANDROLES)
+apply-metabase: roles
 	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --diff
 
 # Update ssh keys on all servers
-update-github-ssh-keys: $(KEYSANDROLES)
+update-github-ssh-keys: roles
 	.venv/bin/ansible-playbook site.yml --tags userkeys
 
 install-linters: venv
 	.venv/bin/pip install --upgrade pip ansible-lint  yamllint
 
 yaml-lint: venv
-	.venv/bin/yamllint roles/*.yml site.yml 
+	.venv/bin/yamllint roles/*.yml site.yml
 
 ansible-lint: venv
 	.venv/bin/ansible-lint roles/*.yml site.yml

@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-ruby "2.7.6"
+ruby "3.3.6"
 
 group :development do
   gem "rubocop"

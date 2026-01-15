@@ -1,0 +1,20 @@
+# Mise configuration for tool version management
+# See https://mise.jdx.dev/ for more information
+
+[tools]
+# Python - updated to latest stable version
+python = "3.13.1"
+
+# Ruby - updated to latest stable version
+ruby = "3.3.6"
+
+# OpenTofu - Terraform alternative
+opentofu = "1.9.0"
+
+[env]
+# Ensure mise-managed tools are in PATH
+_.path = ["{{config_root}}/.venv/bin"]
+
+[settings]
+# Use symlinks for better performance
+experimental = true

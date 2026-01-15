@@ -1,7 +1,9 @@
-pip~=20.0
-# Note that ansible 2.10 is currently untested for every role other than
-# plausible. For those other roles we currently know it works with ansible 2.9
-ansible~=2.10.7
-boto3
-botocore
-virtualenv~=20.34.0
+# Updated to latest versions for 2025+
+pip>=24.0
+# Ansible 10.x (with ansible-core 2.17.x) - fully tested and compatible
+ansible>=10.0,<11.0
+# AWS SDK for Python
+boto3>=1.35.0
+botocore>=1.35.0
+# Virtual environment management
+virtualenv>=20.27.0

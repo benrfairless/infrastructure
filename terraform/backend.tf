@@ -1,4 +1,4 @@
-# We're storing the terraform state in S3
+# We're storing the OpenTofu/Terraform state in S3
 terraform {
   backend "s3" {
     bucket  = "oaf-terraform-state"

@@ -32,80 +32,100 @@
   gather_facts: False
 
   tasks:
-  - name: install python 2 (or python 3 on Ubuntu 20.04)
-    raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal) || apt install -y python-is-python3
-    changed_when: False
+  - name: Install Python 3 for Ansible
+    raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
+    changed_when: false
+
+  - name: Ensure python3 is available as 'python'
+    raw: test -e /usr/bin/python || ln -s /usr/bin/python3 /usr/bin/python
+    changed_when: false
 
 - hosts: ec2
   become: true
   tasks:
-    - name: Install python-pip
-      apt:
-        pkg: python-pip
-        cache_valid_time: 300
-      when: ansible_distribution_release not in ['focal', 'jammy']
-
     - name: Install python3-pip
       apt:
         pkg: python3-pip
         cache_valid_time: 300
-      when: ansible_distribution_release in ['focal', 'jammy']
 
-    - name: Install boto which is required for EC2 stuff (Python 2)
-      pip: name=boto
-
-    - name: Install boto3 which is required for EC2 stuff (Python 3)
-      pip: name=boto3
-      when: ansible_distribution_release in ['focal', 'jammy']
+    - name: Install boto3 and botocore for AWS operations
+      pip:
+        name:
+          - boto3
+          - botocore
+        executable: pip3
 
     - name: Get information about the Mysql 5 instance
-      rds:
+      amazon.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: main-database
+        db_instance_identifier: main-database
         region: "{{ ec2_region }}"
-      register: rds_mysql5
+      register: rds_mysql5_info
       # Run this task even when running ansible-playbook with "--check"
-      check_mode: no
-      when: "'requires_mysql' in group_names"
-    
-    - name: Get information about the Mysql 8 instance
-      rds:
-        aws_access_key: "{{ aws_access_key }}"
-        aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: maindb
-        region: "{{ ec2_region }}"
-      register: rds_mysql8
-      # Run this task even when running ansible-playbook with "--check"
-      check_mode: no
+      check_mode: false
       when: "'requires_mysql' in group_names"
 
+    - name: Set MySQL 5 facts for compatibility
+      set_fact:
+        rds_mysql5:
+          instance:
+            endpoint: "{{ rds_mysql5_info.instances[0].endpoint.address }}"
+      when: "'requires_mysql' in group_names and rds_mysql5_info.instances | length > 0"
+
+    - name: Get information about the Mysql 8 instance
+      amazon.aws.rds_instance_info:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        db_instance_identifier: maindb
+        region: "{{ ec2_region }}"
+      register: rds_mysql8_info
+      # Run this task even when running ansible-playbook with "--check"
+      check_mode: false
+      when: "'requires_mysql' in group_names"
+
+    - name: Set MySQL 8 facts for compatibility
+      set_fact:
+        rds_mysql8:
+          instance:
+            endpoint: "{{ rds_mysql8_info.instances[0].endpoint.address }}"
+      when: "'requires_mysql' in group_names and rds_mysql8_info.instances | length > 0"
 
     - name: Get information about the postgresql RDS instance
-      rds:
+      amazon.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: postgresql
+        db_instance_identifier: postgresql
         region: "{{ ec2_region }}"
-      register: rds_postgresql
+      register: rds_postgresql_info
       # Run this task even when running ansible-playbook with "--check"
-      check_mode: no
+      check_mode: false
       when: "'requires_postgresql' in group_names"
 
+    - name: Set PostgreSQL facts for compatibility
+      set_fact:
+        rds_postgresql:
+          instance:
+            endpoint: "{{ rds_postgresql_info.instances[0].endpoint.address }}"
+      when: "'requires_postgresql' in group_names and rds_postgresql_info.instances | length > 0"
+
     - name: Get information about the planningalerts RDS instance
-      rds:
+      amazon.aws.rds_instance_info:
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        command: facts
-        instance_name: planningalerts
+        db_instance_identifier: planningalerts
         region: "{{ ec2_region }}"
-      register: rds_planningalerts
+      register: rds_planningalerts_info
       # Run this task even when running ansible-playbook with "--check"
-      check_mode: no
+      check_mode: false
       when: "'requires_postgresql' in group_names"
+
+    - name: Set PlanningAlerts facts for compatibility
+      set_fact:
+        rds_planningalerts:
+          instance:
+            endpoint: "{{ rds_planningalerts_info.instances[0].endpoint.address }}"
+      when: "'requires_postgresql' in group_names and rds_planningalerts_info.instances | length > 0"
 
 - hosts: all
   become: true

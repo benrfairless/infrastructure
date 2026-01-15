@@ -103,16 +103,12 @@ a very similar approach.
 To get a completely working server and service up and running requires a number
 of different tools. We use different tools for different things.
 
-- Terraform: To spin up servers, manage DNS and IP addresses and setting up any
-  related AWS infrastructure
-- Ansible: To configure individual servers - install packages, create directory
-  structures, install SSL certificates, configure cron jobs, create databases,
-  etc..
-- Vagrant: For local development of the Ansible setups for the servers. The
-  vagrant boxes are not designed for doing application development. For that
-  go to the individual application repositories.
-- Capistrano: For application deployment. This is what installs the actual
-  web application and updates the database schema.
+- **Mise**: Modern tool version manager that ensures everyone uses the same versions of Python, Ruby, and OpenTofu
+- **OpenTofu**: Open-source Infrastructure as Code tool (Terraform alternative) to spin up servers, manage DNS and IP addresses and setting up any related AWS infrastructure
+- **Ansible**: To configure individual servers - install packages, create directory structures, install SSL certificates, configure cron jobs, create databases, etc.
+- **Vagrant**: For local development of the Ansible setups for the servers. The vagrant boxes are not designed for doing application development. For that go to the individual application repositories.
+- **Capistrano**: For application deployment. This is what installs the actual web application and updates the database schema.
+- **1Password**: Secure secrets management for Ansible vault passwords
 
 Each application has its own repository and this is where application deployment
 is done from. This repository just contains the Terraform and Ansible configuration
@@ -124,6 +120,29 @@ A little note on terminology:
 - "deployment" - we use to mean installing or updating the web application with Capistrano.
 
 ## <a name='Updates'></a>Updates
+
+### 2026-01-15
+
+**Infrastructure Modernization** 🎉
+
+Major update to modernize the entire infrastructure toolchain:
+
+- **Python**: Updated from 3.11.13 to 3.13.1
+- **Ruby**: Updated from 2.7.6 to 3.3.6
+- **Ansible**: Updated from 2.10.7 to 10.x (with ansible-core 2.17.x)
+  - Migrated from deprecated `rds` module to `amazon.aws.rds_instance_info`
+  - Removed Python 2 support (Python 3 only)
+  - Updated to modern YAML boolean syntax
+- **Terraform → OpenTofu**: Migrated to OpenTofu 1.9.0 (open-source alternative)
+  - Updated AWS provider from 4.62 to 5.82
+  - Updated Cloudflare provider from 4.4 to 4.48
+- **Mise**: Implemented for tool version management (replaces rbenv, pyenv, etc.)
+- **1Password**: Replaced Keybase for secrets management
+  - More secure and better maintained
+  - Easier team management
+  - Cross-platform support
+
+See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for detailed migration instructions.
 
 ### <a name=''></a>2025-05-27
 
@@ -183,60 +202,109 @@ If it makes sense we might move cuttlefish and morph.io to AWS as well.
 
 ### <a name='Prerequisites'></a>Prerequisites
 
-- For starting local VMs for testing you will need [Vagrant](https://www.vagrantup.com/) and a supported provider - our instructions assume [VirtualBox](https://developer.hashicorp.com/vagrant/docs/providers/virtualbox).
-- In order to run Ansible, you'll need Python < 3.12 installed
-  - 3.12 dropped some deprecated language features which cause [Ansible 2.9 and 2.10 to no longer work](https://github.com/ansible/ansible/issues/81946).
-  - Secrets: Ansible looks at the four symlinks in the root of this repo and expects to find passphrases to unlock secrets used for production deployments. Our usual method of distributing these files is documented [below](#add-the-ansible-vault-password). If Keybase isn't working for you, any technique you have to put the right value into the right file will be fine. You may need to update the `vault_identity_list` in [ansible.cfg](https://github.com/openaustralia/infrastructure/blob/master/ansible.cfg) to point at your new location.
-- In order to run Capistrano, you'll need a version of Ruby installed; even better, install [rbenv](https://rbenv.org/) so that you're able to manage multiple versions of Ruby.
-- For deploying code onto dev/test/prod machines, you'll need [capistrano](http://capistranorb.com/)
-- For a few things, including major PlanningAlerts deployments, you'll need [Terraform](https://developer.hashicorp.com/terraform/install)
-  - Terraform requires some extra secrets to access the S3 bucket we use to store Terraform's permanent state. You can put these in the usual place that AWS CLI tools look - `~/.aws/credentials`.
-  - Terraform requires some extra secrets in addition to those used by Ansible. Ask James about secrets.auto.tfvars
-    - Note that some of these secrets are the same secrets used as AWS credentials above, but they'll need to be provided again to populate the Terraform variables as well
-  - Terraform requires that you have [the gCloud CLI](https://cloud.google.com/sdk/docs/install) set up and configured with authentication credentials it can use. `gcloud auth application-default login`
-  - Terraform runs `prepkey.sh` to grab your SSH public key to use as a deployer key in AWS. This script makes some simple assumptions: that `jq` is installed, and that your public key can be found at `~/.ssh/id_rsa.pub`.
-  - We host DNS on Cloudflare. An API key to manage these zones is one of the secrets you'll need to provide. To get access to the configs in the [Cloudflare dashboard](https://dash.cloudflare.com), you'll need access to the organisation - see Matthew or James for details
+**Tool Version Management:**
+- **[Mise](https://mise.jdx.dev/)**: Modern version manager (replaces asdf, rbenv, pyenv, etc.)
+  - Install: `curl https://mise.run | sh` (Linux) or `brew install mise` (macOS)
+  - Once installed, `cd` to this repo and run `mise install` to get Python 3.13.1, Ruby 3.3.6, and OpenTofu 1.9.0
+
+**For Local Development:**
+- **[Vagrant](https://www.vagrantup.com/)**: For starting local VMs for testing
+- **[VirtualBox](https://developer.hashicorp.com/vagrant/docs/providers/virtualbox)**: VM provider for Vagrant
+
+**For Production Deployments:**
+- **[1Password CLI](https://developer.1password.com/docs/cli/)**: Secure secrets management
+  - Install: `brew install --cask 1password-cli` (macOS) or [follow Linux instructions](https://developer.1password.com/docs/cli/get-started/)
+  - Authenticate: `eval $(op signin)`
+  - Vault passwords must be stored in 1Password "Infrastructure" vault as:
+    - `ansible-vault-default`
+    - `ansible-vault-rtk`
+    - `ansible-vault-ec2`
+    - `ansible-vault-all`
+- **[Capistrano](http://capistranorb.com/)**: For deploying code (Ruby gem, installed by mise)
+
+**For Infrastructure Management:**
+- **OpenTofu**: Installed automatically via mise (replaces Terraform)
+  - Requires AWS credentials in `~/.aws/credentials` for S3 state backend
+  - Requires secrets.auto.tfvars (ask James for this file)
+  - Requires [gCloud CLI](https://cloud.google.com/sdk/docs/install) configured: `gcloud auth application-default login`
+  - Runs `prepkey.sh` which expects `jq` installed and SSH public key at `~/.ssh/id_rsa.pub`
+  - Cloudflare API access required (see Matthew or James for organization access)
 
 ### <a name='Environmentsetup'></a>Environment setup
 
-There's a very handy `Makefile` included which will:
+**Step 1: Install Mise and Tools**
 
-- install Vagrant plugins
-- Create a python virtual environment
+```bash
+# Install mise (Linux)
+curl https://mise.run | sh
+echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+source ~/.bashrc
+
+# Install mise (macOS)
+brew install mise
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+source ~/.zshrc
+
+# Install all required tools (Python 3.13.1, Ruby 3.3.6, OpenTofu 1.9.0)
+cd /path/to/infrastructure
+mise install
+```
+
+**Step 2: Set Up Python Virtual Environment**
+
+The `Makefile` will:
+- Install Vagrant plugins
+- Create a Python virtual environment
+- Install Ansible and dependencies
 - Install `ansible-galaxy` roles and collections
 
-Simply run
+Simply run:
 
-```
+```bash
 make
 ```
 
-### <a name='AddtheAnsibleVaultpassword'></a>Add the Ansible Vault password
+**Step 3: Authenticate with 1Password**
 
-Ansible Vault secrets are distributed via
-[Keybase](https://keybase.io). Before you can push to production
-servers, you'll need to be added to the appropriate teams.
+```bash
+# Sign in to 1Password (do this once per session)
+eval $(op signin)
 
-You'll need to have Keybase installed on the machine where you run
-ansible.
+# Verify authentication
+make check-1password
+```
 
-If this system has a gui, you'll need to enable "Finder integration"
-or the equivalent on your platform, under Settings -> Files.
+### <a name='AddtheAnsibleVaultpassword'></a>Configure Ansible Vault Passwords
 
-If your system does _not_ have a GUI - for instance, it's a WSL instance on
-windows; or a remote Ubuntu VM running headless - there's a helper script
-at `bin/headless-keybase.sh` which will help you run the Keybase services
-as user-space systemd units.
+**We now use 1Password instead of Keybase for secrets management.**
 
-The first time you run `make`, it will try to create `.keybase` as a symlink to
-the place where Keybase makes the files available. This is often `/keybase` on
-linux desktops. On headless systems it might be under `/run/user/`.
+Ansible Vault passwords are stored in 1Password and retrieved automatically when running Ansible commands.
 
-For Mac users, you may need to run `make macos-keybase`, which forces the `.keybase`
-folder to symlink to `/Volumes/Keybase`.
+**Setup Requirements:**
 
-Once this is done, the symlinks to .*-vault-pass inside the repo
-should point to the password files. If this doesn't work you may need to update these files yourself.
+1. **Install 1Password CLI** (see [Prerequisites](#prerequisites))
+
+2. **Get Access to 1Password Vault:**
+   - You need access to the "Infrastructure" vault in the organization's 1Password account
+   - Contact your team administrator to be added
+
+3. **Authenticate:**
+   ```bash
+   eval $(op signin)
+   ```
+
+4. **Verify Setup:**
+   ```bash
+   # Test vault password retrieval
+   ./bin/op-vault-pass.sh default
+
+   # Test with Ansible
+   .venv/bin/ansible-vault view group_vars/ec2.yml
+   ```
+
+**Note:** The `bin/op-vault-pass.sh` script automatically fetches vault passwords from 1Password when Ansible needs them. You must be authenticated with 1Password (`eval $(op signin)`) before running Ansible commands.
+
+**Migration from Keybase:** If you're transitioning from the old Keybase setup, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for detailed migration instructions.
 
 ## <a name='GeneratingSSLcertificatesfordevelopment'></a>Generating SSL certificates for development
 
