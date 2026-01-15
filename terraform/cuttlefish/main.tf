@@ -1,15 +1,4 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.4.0"
-    }
-    linode = {
-      source  = "linode/linode"
-      version = "~> 2.5.2"
-    }
-  }
-}
+# Provider versions inherited from root versions.tf
 
 resource "linode_instance" "main" {
   region           = "us-west"

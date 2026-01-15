@@ -4,21 +4,26 @@
     name: apache2
     state: absent
 
-- name: Add key for passenger
-  apt_key:
-    url: "http://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0xAC40B2F7"
-    state: present
+- name: Download Passenger signing key
+  ansible.builtin.get_url:
+    url: https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key.txt
+    dest: /usr/share/keyrings/phusionpassenger-archive-keyring.asc
+    mode: '0644'
 
 - name: Apt via https
   apt:
     name: apt-transport-https
     state: present
 
-- name: Apt add passenger to list
-  apt_repository:
-    repo: 'deb https://oss-binaries.phusionpassenger.com/apt/passenger {{ansible_distribution_release}} main'
+- name: Add Passenger apt repository
+  ansible.builtin.deb822_repository:
+    name: phusionpassenger
+    types: deb
+    uris: https://oss-binaries.phusionpassenger.com/apt/passenger
+    suites: "{{ ansible_distribution_release }}"
+    components: main
+    signed_by: /usr/share/keyrings/phusionpassenger-archive-keyring.asc
     state: present
-    update_cache: yes
 
 - name: Install nginx and passenger
   apt:
@@ -298,17 +303,23 @@
 # and chromedriver and ensure on every run that the latest ones are installed. That way hopefully everything
 # will hopefully stay in sync at the risk of chrome updating when not necessarily expected.
 
-- name: Get Google key for install Chrome
+- name: Download Google Chrome signing key
   become: true
-  apt_key:
-    url: "https://dl-ssl.google.com/linux/linux_signing_key.pub"
-    state: present
+  ansible.builtin.get_url:
+    url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+    dest: /usr/share/keyrings/google-chrome-keyring.asc
+    mode: '0644'
 
-- name: Apt Google repository
-  apt_repository:
-    repo: "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
+- name: Add Google Chrome apt repository
+  ansible.builtin.deb822_repository:
+    name: google-chrome
+    types: deb
+    uris: http://dl.google.com/linux/chrome/deb/
+    suites: stable
+    components: main
+    architectures: amd64
+    signed_by: /usr/share/keyrings/google-chrome-keyring.asc
     state: present
-    update_cache: yes
 
 - name: Install latest Chrome
   apt:

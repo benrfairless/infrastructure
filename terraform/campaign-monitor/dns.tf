@@ -1,11 +1,5 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.4.0"
-    }
-  }
-}
+# Provider versions inherited from root versions.tf
+
 resource "cloudflare_record" "root" {
   zone_id = var.zone_id
   name    = "email.oaf.org.au"

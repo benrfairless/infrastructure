@@ -47,8 +47,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "oaf-elasticsearch
   }
 }
 
-resource "aws_s3_bucket_acl" "oaf-elasticsearch-snapshots" {
+resource "aws_s3_bucket_ownership_controls" "oaf-elasticsearch-snapshots" {
   bucket = aws_s3_bucket.oaf-elasticsearch-snapshots.id
 
-  acl = "private"
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "oaf-elasticsearch-snapshots" {
+  bucket = aws_s3_bucket.oaf-elasticsearch-snapshots.id
+  acl    = "private"
+
+  depends_on = [aws_s3_bucket_ownership_controls.oaf-elasticsearch-snapshots]
 }

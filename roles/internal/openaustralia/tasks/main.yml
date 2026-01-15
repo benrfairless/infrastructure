@@ -169,15 +169,27 @@
   when: "'ec2' in group_names"
 
 # Install php5 on xenial requires a few more jumps than usual
-- name: Add repo for installing php5
-  apt_repository:
-    repo: 'ppa:ondrej/php'
+- name: Download PHP PPA signing key
+  ansible.builtin.get_url:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c
+    dest: /usr/share/keyrings/ondrej-php-keyring.asc
+    mode: '0644'
+
+- name: Add PHP apt repository
+  ansible.builtin.deb822_repository:
+    name: ondrej-php
+    types: deb
+    uris: https://ppa.launchpadcontent.net/ondrej/php/ubuntu
+    suites: "{{ ansible_distribution_release }}"
+    components: main
+    signed_by: /usr/share/keyrings/ondrej-php-keyring.asc
+    state: present
 
 - name: Install required packages
   apt:
     name: "{{ item }}"
-    update_cache: yes
-  with_items:
+    update_cache: true
+  loop:
     - php5.6
     - php5.6-curl
     - php5.6-mysql

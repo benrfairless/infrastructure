@@ -3,13 +3,22 @@
   apt:
     pkg: python3-psycopg2
 
-- name: Ensure that we have the Docker repository key
-  apt_key:
+- name: Download Docker repository signing key
+  ansible.builtin.get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /usr/share/keyrings/docker-archive-keyring.asc
+    mode: '0644'
 
-- name: Ensure that we have the docker repository
-  apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable"
+- name: Add Docker apt repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: https://download.docker.com/linux/ubuntu
+    suites: "{{ ansible_distribution_release }}"
+    components: stable
+    architectures: amd64
+    signed_by: /usr/share/keyrings/docker-archive-keyring.asc
+    state: present
 
 - name: Install docker
   apt:
@@ -46,7 +55,6 @@
     name: "metabase"
     password: "{{ db_password }}"
     priv: ALL
-    no_password_changes: true
 
 - name: Create /srv/www directory
   file:

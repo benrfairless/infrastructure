@@ -1,11 +1,4 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.4.0"
-    }
-  }
-}
+# Provider versions inherited from root versions.tf
 
 resource "aws_instance" "main" {
   ami = var.ami
@@ -24,10 +17,15 @@ resource "aws_instance" "main" {
 }
 
 resource "aws_eip" "main" {
-  instance = aws_instance.main.id
+  domain = "vpc"
   tags = {
     Name = "au.proxy"
   }
+}
+
+resource "aws_eip_association" "main" {
+  instance_id   = aws_instance.main.id
+  allocation_id = aws_eip.main.id
 }
 
 resource "aws_security_group" "main" {

@@ -59,9 +59,19 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "oaf-backups" {
   }
 }
 
-resource "aws_s3_bucket_acl" "oaf-backups" {
+resource "aws_s3_bucket_ownership_controls" "oaf-backups" {
   provider = aws.us-east-1
   bucket   = aws_s3_bucket.oaf-backups.id
 
-  acl = "private"
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "oaf-backups" {
+  provider = aws.us-east-1
+  bucket   = aws_s3_bucket.oaf-backups.id
+  acl      = "private"
+
+  depends_on = [aws_s3_bucket_ownership_controls.oaf-backups]
 }

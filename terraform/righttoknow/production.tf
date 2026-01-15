@@ -32,11 +32,16 @@ resource "aws_instance" "production" {
 }
 
 resource "aws_eip" "production" {
-  instance = aws_instance.production.id
+  domain = "vpc"
   tags = {
     Name        = "righttoknow-production"
     Environment = "production"
   }
+}
+
+resource "aws_eip_association" "production" {
+  instance_id   = aws_instance.production.id
+  allocation_id = aws_eip.production.id
 }
 
 resource "aws_ebs_volume" "production_data" {

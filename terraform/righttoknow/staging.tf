@@ -31,11 +31,16 @@ resource "aws_instance" "staging" {
 }
 
 resource "aws_eip" "staging" {
-  instance = aws_instance.staging.id
+  domain = "vpc"
   tags = {
     Name        = "righttoknow-staging"
     Environment = "staging"
   }
+}
+
+resource "aws_eip_association" "staging" {
+  instance_id   = aws_instance.staging.id
+  allocation_id = aws_eip.staging.id
 }
 
 resource "aws_ebs_volume" "staging_data" {

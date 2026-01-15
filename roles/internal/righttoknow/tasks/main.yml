@@ -4,15 +4,21 @@
     name: apache2
     state: absent
 
-- name: Add key for passenger
+- name: Download Passenger signing key
   ansible.builtin.get_url:
     url: https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key.txt
     dest: /usr/share/keyrings/phusionpassenger-archive-keyring.asc
-- name: Add passenger apt repository
-  apt_repository:
-    repo: 'deb [signed-by=/usr/share/keyrings/phusionpassenger-archive-keyring.asc] https://oss-binaries.phusionpassenger.com/apt/passenger {{ansible_distribution_release}} main'
+    mode: '0644'
+
+- name: Add Passenger apt repository
+  ansible.builtin.deb822_repository:
+    name: phusionpassenger
+    types: deb
+    uris: https://oss-binaries.phusionpassenger.com/apt/passenger
+    suites: "{{ ansible_distribution_release }}"
+    components: main
+    signed_by: /usr/share/keyrings/phusionpassenger-archive-keyring.asc
     state: present
-    update_cache: yes
 
 - name: Install nginx and passenger
   apt:
