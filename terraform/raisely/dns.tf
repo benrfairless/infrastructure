@@ -1,11 +1,4 @@
-terraform {
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.4.0"
-    }
-  }
-}
+# Provider version inherited from root versions.tf
 
 # CNAME records
 resource "cloudflare_record" "root" {
@@ -39,15 +32,17 @@ resource "cloudflare_record" "spf" {
 
 # MX records
 resource "cloudflare_record" "mx1" {
-  zone_id = var.zone_id
-  name    = "donate.oaf.org.au"
-  type    = "MX"
-  value   = "mxa.mailgun.org"
+  zone_id  = var.zone_id
+  name     = "donate.oaf.org.au"
+  type     = "MX"
+  priority = 10
+  value    = "mxa.mailgun.org"
 }
 
 resource "cloudflare_record" "mx2" {
-  zone_id = var.zone_id
-  name    = "donate.oaf.org.au"
-  type    = "MX"
-  value   = "mxb.mailgun.org"
+  zone_id  = var.zone_id
+  name     = "donate.oaf.org.au"
+  type     = "MX"
+  priority = 20
+  value    = "mxb.mailgun.org"
 }

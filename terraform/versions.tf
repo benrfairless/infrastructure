@@ -1,8 +1,8 @@
 
 terraform {
-  # OpenTofu 1.6.0+ is compatible with Terraform 1.6.0+
-  # This configuration works with both OpenTofu and Terraform
-  required_version = ">= 1.6.0"
+  # OpenTofu 1.9.0+ required for latest features and provider compatibility
+  # This configuration is optimized for OpenTofu but remains Terraform-compatible
+  required_version = ">= 1.9.0"
 
   required_providers {
     aws = {
@@ -14,6 +14,11 @@ terraform {
       source  = "cloudflare/cloudflare"
       # Updated to Cloudflare provider 4.x latest
       version = "~> 4.48.0"
+    }
+    google = {
+      source  = "hashicorp/google"
+      # Google Cloud provider for planningalerts infrastructure
+      version = "~> 6.17.0"
     }
     external = {
       source  = "hashicorp/external"

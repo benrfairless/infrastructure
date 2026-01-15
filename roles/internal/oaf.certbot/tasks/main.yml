@@ -1,26 +1,17 @@
 ---
 # tasks file for oaf.certbot
 
-- name: Install Certbot PPA
-  apt_repository:
-    repo: ppa:certbot/certbot
-    update_cache: yes
-  # On Ubuntu 20.04 (focal) and 22.04 (jammy) we can install certbot as a standard Ubuntu package
-  when: ansible_distribution_release not in ['focal', 'jammy']
+# Note: Certbot is available as a standard package in Ubuntu 20.04+ (focal, jammy, noble)
+# No PPA needed for modern Ubuntu releases
 
 - name: Install certbot
   apt:
     pkg: certbot
+    update_cache: true
 
-- name: Install certbot plugin (python != 3)
-  apt:
-    pkg: "python-certbot-{{ certbot_webserver }}"
-  when: ansible_python['version']['major'] != 3
-
-- name: Install certbot plugin (python == 3)
+- name: Install certbot plugin (Python 3)
   apt:
     pkg: "python3-certbot-{{ certbot_webserver }}"
-  when: ansible_python['version']['major'] == 3
 
 - name: Install certificates with certbot
   command: certbot run --non-interactive --agree-tos --keep --expand --{{ certbot_webserver }} -m {{ item.email }} {{ ['-d'] | product(item.domains) | map('join', ' ') | join(' ') }}

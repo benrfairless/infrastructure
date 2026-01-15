@@ -1,5 +1,6 @@
 ---
 
-- include: backup.yml
+- name: Include backup tasks
+  include_tasks: backup.yml
   when: backup_enabled
   tags: [backup]

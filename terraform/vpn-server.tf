@@ -43,11 +43,17 @@ data "aws_ami" "ubuntu_jammy" {
 
 # Elastic IP for consistent VPN endpoint
 resource "aws_eip" "openvpn" {
-  instance = aws_instance.openvpn.id
+  domain = "vpc"
 
   tags = {
     Name = "openvpn-server"
   }
+}
+
+# Associate EIP with instance
+resource "aws_eip_association" "openvpn" {
+  instance_id   = aws_instance.openvpn.id
+  allocation_id = aws_eip.openvpn.id
 }
 
 output "vpn_server_ip" {

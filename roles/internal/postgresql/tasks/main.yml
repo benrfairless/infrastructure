@@ -1,15 +1,21 @@
 ---
 # tasks file for postgresql
 
-- name: Import postgresql repository signing key
-  apt_key:
+- name: Download PostgreSQL repository signing key
+  ansible.builtin.get_url:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    id: ACCC4CF8
+    dest: /usr/share/keyrings/postgresql-archive-keyring.asc
+    mode: '0644'
 
-- name: Add postgresql apt repository
-  apt_repository:
-    repo: deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main
-    filename: pgdg
+- name: Add PostgreSQL apt repository
+  ansible.builtin.deb822_repository:
+    name: pgdg
+    types: deb
+    uris: http://apt.postgresql.org/pub/repos/apt/
+    suites: "{{ ansible_distribution_release }}-pgdg"
+    components: main
+    signed_by: /usr/share/keyrings/postgresql-archive-keyring.asc
+    state: present
 
 # We're currently running 15.2 in production
 - name: Install postgresql 15 server
