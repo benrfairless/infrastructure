@@ -19,4 +19,5 @@ certificates/*.key
 certificates/*.pem
 
 .venv/
+.ansible/
 db_dumps/*.sql.gz
