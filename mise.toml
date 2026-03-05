@@ -1,0 +1,60 @@
+[tools]
+python = "3.11.13"
+ruby = "2.7.6"
+terraform = "1.9.8"
+fnox = "1.15.0"
+hk = "1.36.0"
+
+[tasks.venv]
+description = "Set up Python virtual environment with all dependencies"
+run = [
+  "test -d .venv || python3 -m virtualenv .venv",
+  ".venv/bin/pip install --upgrade pip virtualenv",
+  ".venv/bin/pip install -Ur requirements.txt",
+]
+
+[tasks.collections]
+description = "Install Ansible Galaxy collections"
+depends = ["venv"]
+run = ".venv/bin/ansible-galaxy collection install -r roles/requirements.yml"
+
+[tasks.roles]
+description = "Install Ansible Galaxy roles and collections"
+depends = ["venv", "collections"]
+run = ".venv/bin/ansible-galaxy install -r roles/requirements.yml -p roles/external"
+
+[tasks.production]
+description = "Run Ansible playbook on all production servers"
+depends = ["roles"]
+run = "fnox exec -- .venv/bin/ansible-playbook site.yml"
+
+[tasks.letsencrypt]
+description = "Forcibly renew LetsEncrypt certificates on production servers"
+depends = ["roles"]
+run = "fnox exec -- .venv/bin/ansible-playbook update-ssl-certs.yml"
+
+[tasks.tf-init]
+description = "Initialise Terraform"
+run = "fnox exec -- terraform -chdir=terraform init"
+
+[tasks.tf-plan]
+description = "Preview Terraform changes"
+run = "fnox exec -- terraform -chdir=terraform plan"
+
+[tasks.tf-apply]
+description = "Apply Terraform changes"
+run = "fnox exec -- terraform -chdir=terraform apply"
+
+[tasks.yamllint]
+description = "Lint YAML files"
+depends = ["venv"]
+run = ".venv/bin/yamllint roles/ site.yml update-ssl-certs.yml"
+
+[tasks.ansible-lint]
+description = "Lint Ansible playbooks and roles"
+depends = ["venv"]
+run = ".venv/bin/ansible-lint roles/ site.yml"
+
+[tasks.lint]
+description = "Run all linters"
+run = "hk run pre-commit --all"

@@ -5,3 +5,6 @@ ansible~=2.10.7
 boto3
 botocore
 virtualenv~=20.34.0
+# ansible-lint 5.x is the last series that supports ansible 2.10
+ansible-lint~=5.4
+yamllint

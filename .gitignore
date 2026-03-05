@@ -1,6 +1,5 @@
 
 .vagrant
-.keybase
 roles/external
 collections/
 test.pem
@@ -61,3 +60,9 @@ log/*.log
 
 # Mac Finder
 .DS_Store
+
+# mise local configuration overrides (personal tool version overrides)
+.mise.local.toml
+
+# fnox local configuration overrides (personal secret overrides)
+fnox.local.toml

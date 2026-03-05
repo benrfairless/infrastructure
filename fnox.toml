@@ -1,0 +1,21 @@
+[providers]
+onepassword = { type = "1password" }
+
+[secrets]
+# Ansible vault passwords — one entry per vault identity defined in ansible.cfg.
+# Each secret is retrieved from 1Password and exposed as an environment variable,
+# which the corresponding script in bin/ prints so that Ansible can use it as a
+# vault-password-file.
+ANSIBLE_VAULT_PASSWORD_DEFAULT = { provider = "onepassword", item = "Ansible Vault Password (default)", field = "password" }
+ANSIBLE_VAULT_PASSWORD_RTK = { provider = "onepassword", item = "Ansible Vault Password (rtk)", field = "password" }
+ANSIBLE_VAULT_PASSWORD_EC2 = { provider = "onepassword", item = "Ansible Vault Password (ec2)", field = "password" }
+ANSIBLE_VAULT_PASSWORD_ALL = { provider = "onepassword", item = "Ansible Vault Password (all)", field = "password" }
+
+# Terraform variable secrets — exposed as TF_VAR_* so that terraform reads them
+# automatically without requiring a secrets.auto.tfvars file.
+TF_VAR_aws_access_key = { provider = "onepassword", item = "AWS OAF", field = "access key id" }
+TF_VAR_aws_secret_key = { provider = "onepassword", item = "AWS OAF", field = "secret access key" }
+TF_VAR_rds_admin_password = { provider = "onepassword", item = "RDS Admin Password", field = "password" }
+TF_VAR_theyvoteforyou_db_password = { provider = "onepassword", item = "TheyVoteForYou DB Password", field = "password" }
+TF_VAR_cloudflare_api_token = { provider = "onepassword", item = "Cloudflare API Token", field = "credential" }
+TF_VAR_linode_api_token = { provider = "onepassword", item = "Linode API Token", field = "credential" }

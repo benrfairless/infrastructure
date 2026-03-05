@@ -1,0 +1,22 @@
+amends "package://github.com/jdx/hk/releases/download/v1.36.0/hk@1.36.0#/Config.pkl"
+
+`pre-commit` {
+  steps {
+    ["yamllint"] {
+      glob = List("**/*.yml", "**/*.yaml")
+      check = ".venv/bin/yamllint {{files}}"
+    }
+    ["ansible-lint"] {
+      glob = List("**/*.yml", "**/*.yaml")
+      check = ".venv/bin/ansible-lint {{files}}"
+    }
+    ["terraform-fmt"] {
+      glob = List("**/*.tf")
+      check = "terraform fmt -check {{files}}"
+    }
+    ["rubocop"] {
+      glob = List("**/*.rb")
+      check = "bundle exec rubocop {{files}}"
+    }
+  }
+}

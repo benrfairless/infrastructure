@@ -1,10 +1,7 @@
-.PHONY: ALL venv roles production letsencrypt retry clean clean-all macos-keybase tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
+.PHONY: ALL venv roles production letsencrypt retry clean clean-all tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
 ALL: roles .vagrant
-KEYSANDROLES := .keybase roles
+ROLES := roles
 
-.keybase:
-	ln -sf $(shell keybase config get -d -b mountdir) .keybase
-	
 .vagrant:
 	VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-hostsupdater
 	touch .vagrant
@@ -25,80 +22,74 @@ roles/external: venv collections roles/requirements.yml
 
 roles: roles/external
 
-production: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook site.yml
+production: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook site.yml
 
-letsencrypt: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook update-ssl-certs.yml
+letsencrypt: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook update-ssl-certs.yml
 
-retry: $(KEYSANDROLES) site.retry
-	.venv/bin/ansible-playbook site.yml -l @site.retry
+retry: $(ROLES) site.retry
+	fnox exec -- .venv/bin/ansible-playbook site.yml -l @site.retry
 
 clean:
-	rm -rf .venv roles/external site.retry collections .keybase
+	rm -rf .venv roles/external site.retry collections
 	
 clean-all: clean
 	rm -rf .vagrant
 
-# Configure Keybase for MacOS
-macos-keybase:
-	ln -sf /Volumes/Keybase .keybase
-
 # Terraform
 tf-init:
-	terraform -chdir=terraform init
+	fnox exec -- terraform -chdir=terraform init
 tf-plan:
-	terraform -chdir=terraform plan
+	fnox exec -- terraform -chdir=terraform plan
 tf-apply:
-	terraform -chdir=terraform apply
+	fnox exec -- terraform -chdir=terraform apply
 
 # Checks only
-check-righttoknow-all: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --check --diff
-check-righttoknow-staging: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --check --diff
-check-righttoknow-prod: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --check --diff
-check-planningalerts: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --check --diff
-check-theyvoteforyou: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --check --diff
-check-oaf: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --check --diff
-check-openaustralia: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --check --diff
-check-metabase: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --check --diff
+check-righttoknow-all: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --check --diff
+check-righttoknow-staging: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --check --diff
+check-righttoknow-prod: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --check --diff
+check-planningalerts: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --check --diff
+check-theyvoteforyou: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --check --diff
+check-oaf: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --check --diff
+check-openaustralia: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --check --diff
+check-metabase: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --check --diff
 
 # These make changes 
-apply-righttoknow-all: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --diff
-apply-righttoknow-staging: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --diff
-apply-righttoknow-prod: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --diff
-apply-planningalerts: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --diff
-apply-theyvoteforyou: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --diff
-apply-oaf: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --diff
-apply-openaustralia: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --diff
-apply-metabase: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --diff
+apply-righttoknow-all: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow --diff
+apply-righttoknow-staging: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_staging --diff
+apply-righttoknow-prod: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l righttoknow_production --diff
+apply-planningalerts: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l planningalerts --diff
+apply-theyvoteforyou: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l theyvoteforyou --diff
+apply-oaf: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l oaf --diff
+apply-openaustralia: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l openaustralia --diff
+apply-metabase: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook -i ./inventory/ec2-hosts site.yml -l metabase --diff
 
 # Update ssh keys on all servers
-update-github-ssh-keys: $(KEYSANDROLES)
-	.venv/bin/ansible-playbook site.yml --tags userkeys
-
-install-linters: venv
-	.venv/bin/pip install --upgrade pip ansible-lint  yamllint
+update-github-ssh-keys: $(ROLES)
+	fnox exec -- .venv/bin/ansible-playbook site.yml --tags userkeys
 
 yaml-lint: venv
-	.venv/bin/yamllint roles/*.yml site.yml 
+	.venv/bin/yamllint roles/ site.yml update-ssl-certs.yml
 
 ansible-lint: venv
-	.venv/bin/ansible-lint roles/*.yml site.yml
+	.venv/bin/ansible-lint roles/ site.yml
 
-lint: yaml-lint ansible-lint
+lint: venv
+	hk run pre-commit --all
