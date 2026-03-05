@@ -1,10 +1,7 @@
-.PHONY: ALL venv roles production letsencrypt retry clean clean-all macos-keybase tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
+.PHONY: ALL venv roles production letsencrypt retry clean clean-all tf-init tf-plan tf-apply check-rtk-prod check-rtk-staging check-planningalerts apply-rtk-prod apply-rtk-staging apply-planningalerts update-github-ssh-keys
 ALL: roles .vagrant
-KEYSANDROLES := .keybase roles
+KEYSANDROLES := roles
 
-.keybase:
-	ln -sf $(shell keybase config get -d -b mountdir) .keybase
-	
 .vagrant:
 	VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-hostsupdater
 	touch .vagrant
@@ -35,14 +32,10 @@ retry: $(KEYSANDROLES) site.retry
 	.venv/bin/ansible-playbook site.yml -l @site.retry
 
 clean:
-	rm -rf .venv roles/external site.retry collections .keybase
+	rm -rf .venv roles/external site.retry collections
 	
 clean-all: clean
 	rm -rf .vagrant
-
-# Configure Keybase for MacOS
-macos-keybase:
-	ln -sf /Volumes/Keybase .keybase
 
 # Terraform
 tf-init:

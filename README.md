@@ -186,7 +186,7 @@ If it makes sense we might move cuttlefish and morph.io to AWS as well.
 - For starting local VMs for testing you will need [Vagrant](https://www.vagrantup.com/) and a supported provider - our instructions assume [VirtualBox](https://developer.hashicorp.com/vagrant/docs/providers/virtualbox).
 - In order to run Ansible, you'll need Python < 3.12 installed
   - 3.12 dropped some deprecated language features which cause [Ansible 2.9 and 2.10 to no longer work](https://github.com/ansible/ansible/issues/81946).
-  - Secrets: Ansible looks at the four symlinks in the root of this repo and expects to find passphrases to unlock secrets used for production deployments. Our usual method of distributing these files is documented [below](#add-the-ansible-vault-password). If Keybase isn't working for you, any technique you have to put the right value into the right file will be fine. You may need to update the `vault_identity_list` in [ansible.cfg](https://github.com/openaustralia/infrastructure/blob/master/ansible.cfg) to point at your new location.
+  - Secrets: Ansible calls small scripts in `bin/` which use the [1Password CLI](https://developer.1password.com/docs/cli/get-started/) (`op read`) to retrieve vault passwords at runtime. Run `bin/setup-1password.sh` to verify your setup. You can also provide the passwords by any other means and point the `vault_identity_list` in [ansible.cfg](ansible.cfg) at them.
 - In order to run Capistrano, you'll need a version of Ruby installed; even better, install [rbenv](https://rbenv.org/) so that you're able to manage multiple versions of Ruby.
 - For deploying code onto dev/test/prod machines, you'll need [capistrano](http://capistranorb.com/)
 - For a few things, including major PlanningAlerts deployments, you'll need [Terraform](https://developer.hashicorp.com/terraform/install)
@@ -214,29 +214,32 @@ make
 ### <a name='AddtheAnsibleVaultpassword'></a>Add the Ansible Vault password
 
 Ansible Vault secrets are distributed via
-[Keybase](https://keybase.io). Before you can push to production
-servers, you'll need to be added to the appropriate teams.
+[1Password](https://1password.com). Before you can push to production
+servers, you'll need to be added to the appropriate 1Password vaults.
 
-You'll need to have Keybase installed on the machine where you run
-ansible.
+You'll need to have the [1Password CLI](https://developer.1password.com/docs/cli/get-started/)
+installed on the machine where you run Ansible.
 
-If this system has a gui, you'll need to enable "Finder integration"
-or the equivalent on your platform, under Settings -> Files.
+Once the CLI is installed, sign in with:
 
-If your system does _not_ have a GUI - for instance, it's a WSL instance on
-windows; or a remote Ubuntu VM running headless - there's a helper script
-at `bin/headless-keybase.sh` which will help you run the Keybase services
-as user-space systemd units.
+```
+op signin
+```
 
-The first time you run `make`, it will try to create `.keybase` as a symlink to
-the place where Keybase makes the files available. This is often `/keybase` on
-linux desktops. On headless systems it might be under `/run/user/`.
+You can verify that everything is working — and that you have access to
+the required vaults — by running the helper script:
 
-For Mac users, you may need to run `make macos-keybase`, which forces the `.keybase`
-folder to symlink to `/Volumes/Keybase`.
+```
+bin/setup-1password.sh
+```
 
-Once this is done, the symlinks to .*-vault-pass inside the repo
-should point to the password files. If this doesn't work you may need to update these files yourself.
+When Ansible runs, it calls the scripts in `bin/` (e.g.
+`bin/vault-pass.sh`) to retrieve vault passwords via `op read`. No
+symlinks or local copies of the passwords are stored on disk.
+
+If you only need to administer a subset of services, you can narrow the
+`vault_identity_list` in [ansible.cfg](ansible.cfg) to the vault IDs
+you actually need (see the comments in that file for details).
 
 ## <a name='GeneratingSSLcertificatesfordevelopment'></a>Generating SSL certificates for development
 
