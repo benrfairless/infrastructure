@@ -109,7 +109,7 @@ resource "cloudflare_record" "spf" {
   zone_id = cloudflare_zone.org.id
   name    = "openaustralia.org"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com ~all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com include:spf.postal.oaf.org.au ~all"
 }
 
 resource "cloudflare_record" "google_site_verification_postmaster_tools" {
@@ -140,6 +140,39 @@ resource "cloudflare_record" "email3" {
   name    = "email3.openaustralia.org"
   type    = "CNAME"
   value   = "track.postal.oaf.org.au"
+}
+
+# DKIM records for mail sent through postal, one per sending domain
+# (openaustralia.org and openaustralia.org.au). The values come from the
+# domain's page in the postal web interface.
+resource "cloudflare_record" "postal_domainkey" {
+  zone_id = cloudflare_zone.org.id
+  name    = "postal-aNeELg._domainkey.openaustralia.org"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDAAMU6hzIYEZtl0Dw46hyJPBzDdKdQFRlvdBMk5vz3MJgxtK1NocROcRbaPbZ0u8QQ7pZz4VIYhBJoYVSPf/4AybNppS7j92NqVTFUvLWl0zRw2Cv6WfVn6wM44PAdKoB5e143ShJwpWbjhSf3bu02RfO7nIWhhxdRugNIfZa+3QIDAQAB;"
+}
+
+resource "cloudflare_record" "alt_postal_domainkey" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "postal-JDp2Xk._domainkey.openaustralia.org.au"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpuRfx4R2kptnPHy6PUbmLi4GzYXGUaT2/sNSb+gR405IGMZuM51dfCo26zdoet8hKJM4CR/1cP/iZmC7J1ntEkeGLtiXWoWSFoQ6afF5T0M/oFDNl6EieehOWcRFI2h7j55sCqsRxCnsE9O80b1yrYrWua+VRXpNe2+bBDsAtHwIDAQAB;"
+}
+
+# Custom Return-Path (MAIL FROM) hosts for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = cloudflare_zone.org.id
+  name    = "psrp.openaustralia.org"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
+}
+
+resource "cloudflare_record" "alt_psrp" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "psrp.openaustralia.org.au"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
 }
 
 resource "cloudflare_record" "google_domainkey" {
@@ -265,7 +298,7 @@ resource "cloudflare_record" "alt_spf" {
   zone_id = cloudflare_zone.org_au.id
   name    = "openaustralia.org.au"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com ~all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com include:spf.postal.oaf.org.au ~all"
 }
 
 resource "cloudflare_record" "alt_google_site_verification" {

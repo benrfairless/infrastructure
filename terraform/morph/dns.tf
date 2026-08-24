@@ -71,6 +71,24 @@ resource "cloudflare_record" "email3" {
   value   = "track.postal.oaf.org.au"
 }
 
+# DKIM record for mail sent through postal. The value comes from the
+# domain's page in the postal web interface.
+resource "cloudflare_record" "postal_domainkey" {
+  zone_id = cloudflare_zone.main.id
+  name    = "postal-ZQ5IfL._domainkey.morph.io"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2ZHwdkNVs5v+cqB/MiLyeAnhzwwP5H303r+QjDgW4VF8SLVTmgItFWT3mf/pEY+xZHEwNLAFmrYApggHIAtT1BakHWP7pS7pUd5dSXcQQwDVhqIdswkDcvUqur6ik4LEfbTjNQwEYCkcNEDyV1bXlNYxKYCN8kcDrwiwtW3ofMQIDAQAB;"
+}
+
+# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = cloudflare_zone.main.id
+  name    = "psrp.morph.io"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "helpscout_dkim_strong1" {
   zone_id = cloudflare_zone.main.id
   name    = "strong1._domainkey.morph.io"
@@ -103,7 +121,7 @@ resource "cloudflare_record" "spf" {
   zone_id = cloudflare_zone.main.id
   name    = "morph.io"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com -all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com include:spf.postal.oaf.org.au -all"
 }
 
 resource "cloudflare_record" "google_site_verification" {

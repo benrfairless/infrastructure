@@ -97,7 +97,25 @@ resource "cloudflare_record" "spf" {
   zone_id = var.oaf_org_au_zone_id
   name    = "oaf.org.au"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com ~all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com include:spf.postal.oaf.org.au ~all"
+}
+
+# DKIM record for mail sent through postal (currently metabase). The value
+# comes from the domain's page in the postal web interface.
+resource "cloudflare_record" "postal_domainkey" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "postal-vdyoRV._domainkey.oaf.org.au"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnfMUJVx836kba6Xgg2EB5ShOSKnx7gft7TvrstAOdtZeRXJ2ksWYJTDcKq6G15WsWCWrMgAw56x3ViOUmbNMaCxpgwCMtS5qAPmcMy2GKotgJv9yzOcDHhbcvdRYeQNCHGDiQheRjBOLKHkkRgOlhRt4UMuNmQ/ahM5Ld0cr5HwIDAQAB;"
+}
+
+# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "psrp.oaf.org.au"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
 }
 
 resource "cloudflare_record" "google_site_verification" {
