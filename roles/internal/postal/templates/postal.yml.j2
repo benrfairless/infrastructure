@@ -21,6 +21,10 @@ message_db:
 
 smtp_server:
   default_bind_address: "::"
+  # Served with the certificate at /config/smtp.cert + smtp.key (postal's
+  # default paths), synced from Caddy's Let's Encrypt certificate by
+  # /usr/local/bin/sync-smtp-certificate
+  tls_enabled: true
 
 dns:
   # These records are managed in terraform/postal/dns.tf
@@ -35,9 +39,10 @@ smtp:
   # SMTP server used to send messages from the postal management system
   # itself to its users (e.g. password resets). Point this at postal's own
   # SMTP server with credentials generated in the web interface once the
-  # installation is up and running.
+  # installation is up and running. Port {{ postal_smtp_submission_port }} is redirected to the SMTP
+  # listener on 25 by /usr/local/bin/redirect-smtp-port.
   host: 127.0.0.1
-  port: 2525
+  port: {{ postal_smtp_submission_port }}
   username: {{ postal_system_smtp_username | default('') }}
   password: {{ postal_system_smtp_password | default('') }}
   from_name: {{ postal_smtp_from_name }}
