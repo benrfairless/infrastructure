@@ -140,6 +140,50 @@ resource "cloudflare_record" "dmarc" {
   value   = "righttoknow.org.au.dmarc.dns.suped.com"
 }
 
+# Stripe custom email domain, so Stripe sends Alaveteli Pro invoices, receipts
+# and failed-payment notices from righttoknow.org.au rather than stripe.com.
+# Records come from Stripe Dashboard > Settings > Business > Customer emails.
+# The stripe-verification value is account-scoped, so righttoknow.org.au and
+# oaf.org.au share it; the DKIM selectors are per-domain.
+# Stripe also asks for a _dmarc record, but DMARC is already delegated to Suped
+# above with relaxed alignment (adkim=r, aspf=r), which is all Stripe requires.
+# IMPORTANT: this domain runs p=reject, so mail failing alignment is rejected
+# outright, not quarantined. All of the records below must be in place and
+# correct before the sending domain is switched to righttoknow.org.au in Stripe.
+resource "cloudflare_record" "stripe_domain_verification" {
+  zone_id = cloudflare_zone.main.id
+  name    = "righttoknow.org.au"
+  type    = "TXT"
+  value   = "stripe-verification=415aef2a8e23c6eba13ed66f493149e56cd54e3993d0ceca46261bb308490d1b"
+}
+
+resource "cloudflare_record" "stripe_dkim" {
+  for_each = toset([
+    "nlx7sfzfiroo4hytihut2kgvztnryc76",
+    "x4mkfgrhlsd4q5tmnj236cdc6byq2agx",
+    "ff65wqx6gyecc63llzlvbkyxdb7z5rej",
+    "m5yhf53zlj62cfxwcsa22hisundglybg",
+    "jsmdzumgvcxk57k24y766fnquadblxja",
+    "4ahvdrbjm3mohehchmvdccidcy5g7cnq",
+  ])
+
+  zone_id = cloudflare_zone.main.id
+  name    = "${each.key}._domainkey.righttoknow.org.au"
+  type    = "CNAME"
+  value   = "${each.key}.dkim.custom-email-domain.stripe.com"
+  proxied = false
+}
+
+# Stripe's MAIL FROM domain. This also carries the SPF policy authorising Stripe
+# to send, which is why the apex v=spf1 record above needs no Stripe include.
+resource "cloudflare_record" "stripe_bounce" {
+  zone_id = cloudflare_zone.main.id
+  name    = "bounce.righttoknow.org.au"
+  type    = "CNAME"
+  value   = "custom-email-domain.stripe.com"
+  proxied = false
+}
+
 # Staging environment DNS records
 resource "cloudflare_record" "staging" {
   zone_id = cloudflare_zone.main.id

@@ -213,6 +213,47 @@ resource "cloudflare_record" "spf_include" {
   value   = "v=spf1 ip4:192.0.78.154 ip4:192.0.78.197 ip4:192.0.78.177 ip4:192.0.78.220 ip4:${var.openaustralia_production_ip} ip4:${var.righttoknow_production_ip} ip4:${var.righttoknow_staging_ip} ip4:${var.cuttlefish_ip} -all"
 }
 
+# Stripe custom email domain, so Stripe sends invoices, receipts and
+# failed-payment notices from oaf.org.au rather than stripe.com. Records come
+# from Stripe Dashboard > Settings > Business > Customer emails.
+# The stripe-verification value is account-scoped, so oaf.org.au and
+# righttoknow.org.au share it; the DKIM selectors are per-domain.
+# Stripe also asks for a _dmarc record, but DMARC is already delegated to Suped
+# above with relaxed alignment (adkim=r, aspf=r), which is all Stripe requires.
+resource "cloudflare_record" "stripe_domain_verification" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "oaf.org.au"
+  type    = "TXT"
+  value   = "stripe-verification=415aef2a8e23c6eba13ed66f493149e56cd54e3993d0ceca46261bb308490d1b"
+}
+
+resource "cloudflare_record" "stripe_dkim" {
+  for_each = toset([
+    "sy3choeuozwrc5nff46a4d5chl6in7hr",
+    "2zmfo57rkzmwlfw4boa5fdu7ejmnrulb",
+    "ngpfnppr33fmdaadwenl3cqxjwrdb6wv",
+    "7nnargc6s4l4jabhwdp3utqupozz6xul",
+    "fz32jcuxb7ytwxflfnuzymb5rqm3snco",
+    "emavrbm6a24zowyv2pgfrqn3ma2xebfh",
+  ])
+
+  zone_id = var.oaf_org_au_zone_id
+  name    = "${each.key}._domainkey.oaf.org.au"
+  type    = "CNAME"
+  value   = "${each.key}.dkim.custom-email-domain.stripe.com"
+  proxied = false
+}
+
+# Stripe's MAIL FROM domain. This also carries the SPF policy authorising Stripe
+# to send, which is why the apex v=spf1 record above needs no Stripe include.
+resource "cloudflare_record" "stripe_bounce" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "bounce.oaf.org.au"
+  type    = "CNAME"
+  value   = "custom-email-domain.stripe.com"
+  proxied = false
+}
+
 ## openaustraliafoundation.org.au
 
 # A records
