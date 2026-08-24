@@ -22,8 +22,10 @@ Postal is assembled with Terraform (`terraform/postal/` - Linode instance, rever
    domain's `dns.tf`), generate SMTP credentials, enable click/open tracking with a `track.<domain>` track domain
    (skip tracking for metabase - it only sends internal mail), and for the two PlanningAlerts mail servers add a
    webhook pointing at the app's Postal event endpoint. `theyvoteforyou` gets a second credential for its staging
-   stage and `morph` gets a second credential for Discourse (discuss.morph.io)
-5. Generate SMTP credentials for postal's own system emails and set `postal_system_smtp_username`/`postal_system_smtp_password` (vaulted) in `group_vars/postal.yml`
+   stage and `morph` gets a second credential for Discourse (discuss.morph.io). Each `track.<domain>` hostname
+   also needs a server block in the role's `Caddyfile.j2` (Caddy terminates SSL for track domains) alongside the
+   CNAME in that domain's `dns.tf`
+5. Generate SMTP credentials for postal's own system emails and set `postal_system_smtp_username`/`postal_system_smtp_password` (vaulted) in `group_vars/postal.yml`. Until this is done postal can't send its own system emails (e.g. password resets). The credential must belong to a mail server with oaf.org.au as a sending domain, so system mail from `postal@oaf.org.au` is DKIM-signed and DMARC-aligned
 
 ## How applications connect
 
