@@ -57,6 +57,15 @@ resource "cloudflare_record" "email2" {
   value   = "cuttlefish.oaf.org.au"
 }
 
+# Click/open tracking for mail sent through postal (the planningalerts
+# mail server only - comment emails to councils are not tracked)
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "email3.planningalerts.org.au"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "donate" {
   zone_id = cloudflare_zone.main.id
   name    = "donate.planningalerts.org.au"

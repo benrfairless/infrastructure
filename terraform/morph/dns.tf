@@ -63,6 +63,14 @@ resource "cloudflare_record" "email2" {
   value   = "cuttlefish.oaf.org.au"
 }
 
+# Click/open tracking for mail sent through postal
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "email3.morph.io"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "helpscout_dkim_strong1" {
   zone_id = cloudflare_zone.main.id
   name    = "strong1._domainkey.morph.io"

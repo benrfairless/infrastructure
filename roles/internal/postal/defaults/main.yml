@@ -27,3 +27,13 @@ postal_smtp_from_address: postal@oaf.org.au
 # Stop docker container logs filling the disk
 postal_docker_log_max_size: 50m
 postal_docker_log_max_file: "5"
+
+# Per-application click/open tracking hostnames, served by Caddy (which
+# obtains a Let's Encrypt certificate for each). Each one needs a CNAME to
+# track.{{ postal_web_hostname }} in its domain's dns.tf and a track domain
+# on the application's mail server in the postal web interface.
+postal_track_domains:
+  - email3.theyvoteforyou.org.au
+  - email3.openaustralia.org
+  - email3.morph.io
+  - email3.planningalerts.org.au

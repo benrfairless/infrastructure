@@ -134,6 +134,14 @@ resource "cloudflare_record" "cuttlefish_domainkey2" {
   value   = "k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnTduUSfwRbdTef45qgzmJ75zTtwiFgtadq/KFfY18/1plQiSSvzpOTNZQjuPW+5X9AeHQhPGtrxLd26ho/V/8FTj2YiAkpi0uwjPBMiERNhOYT9AJzImNpTmFaa9Sq2JXnhYJQHZhlEVu2iE3ZQEZ+3gIbgvS23vFSYwv3n3HwcbAo3epYCekVglKBZvbGvChXZvmN90wz5ovTv74VPOiq96xPWkzcbA5CEiEGfJT8VqNdciQlbEy3Mpijyj/2qPvwZzDCG2xVS47FUr7xYXPRd/JUx7qDw+xlaFUQuT9S6/6zYWwJW7qJ4REIPvC/paORPfnsyqk8c6MIOH9nMXzQIDAQAB"
 }
 
+# Click/open tracking for mail sent through postal
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.org.id
+  name    = "email3.openaustralia.org"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "google_domainkey" {
   zone_id = cloudflare_zone.org.id
   name    = "google._domainkey.openaustralia.org"

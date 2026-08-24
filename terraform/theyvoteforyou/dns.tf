@@ -76,6 +76,14 @@ resource "cloudflare_record" "email2" {
   value   = "cuttlefish.oaf.org.au"
 }
 
+# Click/open tracking for mail sent through postal
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "email3.theyvoteforyou.org.au"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "shopify" {
   zone_id = cloudflare_zone.org_au.id
   name    = "swag.theyvoteforyou.org.au"
