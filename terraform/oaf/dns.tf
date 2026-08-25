@@ -106,7 +106,7 @@ resource "cloudflare_record" "postal_domainkey" {
   zone_id = var.oaf_org_au_zone_id
   name    = "postal-vdyoRV._domainkey.oaf.org.au"
   type    = "TXT"
-  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnfMUJVx836kba6Xgg2EB5ShOSKnx7gft7TvrstAOdtZeRXJ2ksWYJTDcKq6G15WsWCWrMgAw56x3ViOUmbNMaCxpgwCMtS5qAPmcMy2GKotgJv9yzOcDHhbcvdRYeQNCHGDiQheRjBOLKHkkRgOlhRt4UMuNmQ/ahM5Ld0cr5HwIDAQAB;"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnfMUJVx836kba6Xgg2EB5Sh0SKnx7gft7TvrstAOdtZeRXJ2ksWYJTDcKq6G15WsWCWrMgAw56x3ViOUmbNMaCxpgwCMtS5qAPmcMy2GKotgJv9yzOcDHhbcvdRYeQNCHGDiQheRjBOLKHkkRgOlhRt4UMuNmQ/ahM5Ld0cr5HwIDAQAB;"
 }
 
 # Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
