@@ -142,6 +142,13 @@ resource "cloudflare_record" "email3" {
   value   = "track.postal.oaf.org.au"
 }
 
+resource "cloudflare_record" "alt_email3" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "email3.openaustralia.org.au"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
 # DKIM records for mail sent through postal, one per sending domain
 # (openaustralia.org and openaustralia.org.au). The values come from the
 # domain's page in the postal web interface.

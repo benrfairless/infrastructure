@@ -35,5 +35,6 @@ postal_docker_log_max_file: "5"
 postal_track_domains:
   - email3.theyvoteforyou.org.au
   - email3.openaustralia.org
+  - email3.openaustralia.org.au
   - email3.morph.io
   - email3.planningalerts.org.au
