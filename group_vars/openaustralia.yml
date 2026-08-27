@@ -134,6 +134,12 @@ domains_for_certbot:
 php_version: 8.3
 php_api_version: "20230831"
 
+# Node.js major version installed from NodeSource for twfy's Tailwind CSS build
+# (deploy:npm_build_css). Matches node-version in twfy's own
+# .github/workflows/php.yml, which builds and tests the same npm run
+# build:css step in CI - keep the two in sync.
+nodejs_version: 22
+
 # Based on aws_eip.production.public_ip and CNAMES in terraform/openaustralia/dns.tf
 
 # stage is set to key
