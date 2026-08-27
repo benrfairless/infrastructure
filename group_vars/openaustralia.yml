@@ -48,6 +48,12 @@ cron_enabled_for:
 # deploy-user role, which is the only thing allowed to touch the deploy
 # user's authorized_keys (see that role for why). See
 # openaustralia/openaustralia#934.
+#
+# These are the public halves only. The private halves are not stored
+# anywhere in this repo - they live in the openaustralia repo's staging
+# and production GitHub Environment secrets (DEPLOY_SSH_KEY), and a
+# backup copy of each is kept in the DevOps 1Password vault ("GitHub
+# Actions - openaustralia staging/production deploy key").
 openaustralia_deploy_ci_keys:
   - name: github-actions-staging-deploy
     public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGEkkqBZgj7tpB7UAbbW0PPWHE8fOhCKxEmVElu3+Ic github-actions-staging-deploy"
