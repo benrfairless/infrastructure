@@ -247,6 +247,19 @@
     update_cache: true
     cache_valid_time: 3600
 
+# npm is invoked by Capistrano's deploy:npm_build_css task to build twfy's
+# Tailwind CSS. Without this the deploy fails with "npm: command not found".
+#
+# Jammy's packaged npm/nodejs is old (12.x) - below tailwindcss's engines.node
+# >=14. If that bites, switch to NodeSource with a pinned version, like
+# php_version/xapian_version above.
+- name: Install npm (Node.js package manager, used by Capistrano deploy to build twfy's Tailwind CSS)
+  apt:
+    name: npm
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
 - name: Set default PHP version
   tags: xapian
   community.general.alternatives:
