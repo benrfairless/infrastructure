@@ -70,7 +70,16 @@
       {% endfor %}
     terraform_key_root: 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo ''Please login as the user \"ubuntu\" rather than the user \"root\".'';echo;sleep 10;exit 142" {{ terraform_public_key }} terraform'
     terraform_key_plain: "{{ terraform_public_key }} terraform"
-    permitted_keys_for_account: "{{ github_keys }}\n{{ terraform_key_root if item == 'root' else terraform_key_plain }}"
+    # deploy_ci_keys is only non-empty on hosts (e.g. openaustralia) that
+    # define openaustralia_deploy_ci_keys, and only ever added to the
+    # deploy account - not ubuntu or root.
+    deploy_ci_keys: "{{ (openaustralia_deploy_ci_keys | default([])) | map(attribute='public_key') | list }}"
+    permitted_keys_for_account: >-
+      {{
+        ([github_keys] + (deploy_ci_keys if item == 'deploy' else [])
+         + [terraform_key_root if item == 'root' else terraform_key_plain])
+        | join('\n')
+      }}
   loop:
     - deploy
     - ubuntu

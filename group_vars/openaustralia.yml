@@ -40,6 +40,19 @@ restic_password: !vault |
 cron_enabled_for:
   production: true
   staging: false
+
+# Dedicated, restricted-purpose SSH keys for the GitHub Actions deploy
+# workflows in the openaustralia repo (.github/workflows/deploy-*.yml).
+# Not personal keys - each is scoped to one environment's secret, so a
+# leaked staging key doesn't also grant production. Consumed by the
+# deploy-user role, which is the only thing allowed to touch the deploy
+# user's authorized_keys (see that role for why). See
+# openaustralia/openaustralia#934.
+openaustralia_deploy_ci_keys:
+  - name: github-actions-staging-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGEkkqBZgj7tpB7UAbbW0PPWHE8fOhCKxEmVElu3+Ic github-actions-staging-deploy"
+  - name: github-actions-production-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMqWBWzN/Nqg34SyqyMkqamHuzJOm5G4JrRZKLEtQ+AZ github-actions-production-deploy"
 morph_api_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66623039363037386530623963626464303838643739313264356166376639346133656337663838
