@@ -36,7 +36,7 @@ SITE_NAME: '{{ site_name }}'
 #   DOMAIN: 'www.example.com'
 #
 # ---
-DOMAIN: 'www.{{ domain }}'
+DOMAIN: '{{ www_prefix }}{{ domain }}'
 
 # If true forces everyone (in the production environment) to use encrypted
 # connections (via https) by redirecting unencrypted connections. This is

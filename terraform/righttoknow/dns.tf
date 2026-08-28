@@ -195,7 +195,7 @@ resource "cloudflare_record" "staging" {
 
 resource "cloudflare_record" "www_staging" {
   zone_id = cloudflare_zone.main.id
-  name    = "www.staging.righttoknow.org.au"
+  name    = "www-staging.righttoknow.org.au"
   type    = "CNAME"
   value   = "staging.righttoknow.org.au"
   proxied = false
