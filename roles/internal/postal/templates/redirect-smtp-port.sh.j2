@@ -1,0 +1,21 @@
+#!/bin/sh
+# {{ ansible_managed }}
+#
+# Redirect the alternative SMTP submission port to postal's SMTP listener on
+# port 25. AWS EC2 blocks outbound port 25 by default, so the apps submit
+# mail on {{ postal_smtp_submission_port }} instead (as they did with cuttlefish).
+#
+# The OUTPUT rule covers local connections too, so postal's own system emails
+# (sent to 127.0.0.1:{{ postal_smtp_submission_port }}, see postal.yml) take the same path.
+set -e
+
+add_rule() {
+  binary="$1"
+  shift
+  "$binary" -t nat -C "$@" 2> /dev/null || "$binary" -t nat -A "$@"
+}
+
+for binary in iptables ip6tables; do
+  add_rule "$binary" PREROUTING -p tcp --dport {{ postal_smtp_submission_port }} -j REDIRECT --to-ports 25
+  add_rule "$binary" OUTPUT -o lo -p tcp --dport {{ postal_smtp_submission_port }} -j REDIRECT --to-ports 25
+done

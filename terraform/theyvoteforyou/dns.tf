@@ -76,6 +76,32 @@ resource "cloudflare_record" "email2" {
   value   = "cuttlefish.oaf.org.au"
 }
 
+# Click/open tracking for mail sent through postal
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "email3.theyvoteforyou.org.au"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
+# DKIM record for mail sent through postal. The value comes from the
+# domain's page in the postal web interface.
+resource "cloudflare_record" "postal_domainkey" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "postal-T5ymbY._domainkey.theyvoteforyou.org.au"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJDDy7YHdeSSYUlrWIfTf9UtnYO3F/bJTiHsPBisUi44Y1sOZkwSpCDucVUuVzP7kgazO6SAzJpvKaRSNzksbWoERWTowflZ+AxlbxeS8GbonA3M6jYtSAApv1BUz0WsCYH2BHo/h8vPL6STioi/UAWopTq1L8edHqE5nFVy4lgQIDAQAB;"
+}
+
+# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = cloudflare_zone.org_au.id
+  name    = "psrp.theyvoteforyou.org.au"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "shopify" {
   zone_id = cloudflare_zone.org_au.id
   name    = "swag.theyvoteforyou.org.au"
@@ -117,7 +143,7 @@ resource "cloudflare_record" "spf" {
   zone_id = cloudflare_zone.org_au.id
   name    = "theyvoteforyou.org.au"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com -all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com include:spf.postal.oaf.org.au -all"
 }
 
 # TODO: Remove this once the one below is up and running

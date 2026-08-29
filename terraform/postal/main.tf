@@ -74,6 +74,18 @@ resource "linode_firewall" "main" {
     ipv6     = ["::/0"]
   }
 
+  # AWS EC2 blocks outbound port 25 by default, so the apps submit mail on
+  # 2525 (as they did with cuttlefish). The host redirects 2525 to postal's
+  # SMTP listener on 25 (see roles/internal/postal).
+  inbound {
+    label    = "allow-smtp-alt"
+    action   = "ACCEPT"
+    protocol = "TCP"
+    ports    = "2525"
+    ipv4     = ["0.0.0.0/0"]
+    ipv6     = ["::/0"]
+  }
+
   inbound {
     label    = "allow-http"
     action   = "ACCEPT"

@@ -57,6 +57,42 @@ resource "cloudflare_record" "email2" {
   value   = "cuttlefish.oaf.org.au"
 }
 
+# Click/open tracking for mail sent through postal (the planningalerts
+# mail server only - comment emails to councils are not tracked)
+resource "cloudflare_record" "email3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "email3.planningalerts.org.au"
+  type    = "CNAME"
+  value   = "track.postal.oaf.org.au"
+}
+
+# DKIM records for mail sent through postal - one per mail server
+# (planningalerts and planningalerts-comments, see ADR 0003). The values
+# come from the domain's page on each mail server in the postal web
+# interface.
+resource "cloudflare_record" "postal_domainkey" {
+  zone_id = cloudflare_zone.main.id
+  name    = "postal-E79yJc._domainkey.planningalerts.org.au"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBw6JQtx7W9F+pDNu74ZqC7xiDnmp6qPJNY6NIAF9tANWtZb9DqOQFtdqqFqgzFoeo8Sl6L9VUca3I7Jv2Ta1bIPkZjizDl3kUBrfGXUlrc6ZjQxcQACI5LBCcfnge42JoAIJ/1iRBsuuI8i8rxHSVsGxPqIF2C0U8DgWYqn39SwIDAQAB;"
+}
+
+resource "cloudflare_record" "postal_domainkey2" {
+  zone_id = cloudflare_zone.main.id
+  name    = "postal-EhMmez._domainkey.planningalerts.org.au"
+  type    = "TXT"
+  value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDqJL4C7BCQuDPH7CoAiUibRaOIpgyAUYeWLNwQuruCQNpZXk2hPkfRfXzk27eh4/lTQsZMCsZKogqPK+5iPZi3yyvCqJrvzs5q6MR1XqDamQTRHEuZYNayePzUFtlPTEZ8zm4fhDccakFbeKH+eiKObF14Q8gGmhOTX0jgWyy6HQIDAQAB;"
+}
+
+# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = cloudflare_zone.main.id
+  name    = "psrp.planningalerts.org.au"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
+}
+
 resource "cloudflare_record" "donate" {
   zone_id = cloudflare_zone.main.id
   name    = "donate.planningalerts.org.au"
@@ -97,7 +133,7 @@ resource "cloudflare_record" "spf" {
   zone_id = cloudflare_zone.main.id
   name    = "planningalerts.org.au"
   type    = "TXT"
-  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com a:cuttlefish.oaf.org.au -all"
+  value   = "v=spf1 include:_spf1.oaf.org.au include:_spf.google.com a:cuttlefish.oaf.org.au include:spf.postal.oaf.org.au -all"
 }
 
 resource "cloudflare_record" "google_site_verification" {
