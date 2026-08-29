@@ -17,7 +17,8 @@ caddy_cert_dir="/opt/postal/caddy-data/caddy/certificates/acme-v02.api.letsencry
 updated=""
 
 if [ -f "$caddy_cert_dir/$hostname.crt" ]; then
-  if ! cmp -s "$caddy_cert_dir/$hostname.crt" "$config_dir/smtp.cert"; then
+  if ! cmp -s "$caddy_cert_dir/$hostname.crt" "$config_dir/smtp.cert" \
+    || ! cmp -s "$caddy_cert_dir/$hostname.key" "$config_dir/smtp.key"; then
     # 644 rather than something stricter because the certificate and key are
     # read by a non-root user inside the postal containers (like signing.key)
     install -m 644 "$caddy_cert_dir/$hostname.crt" "$config_dir/smtp.cert"
