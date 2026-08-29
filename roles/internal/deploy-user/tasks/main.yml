@@ -62,6 +62,10 @@
     exclusive: true
     key: "{{ permitted_keys_for_account }}"
   vars:
+    # This block's last content line ("{{ line }} {{ result.item }}") ends with a real
+    # newline of its own - trim_blocks only trims the newline right after a {% %} tag,
+    # not this one, so the block still comes out newline-terminated regardless of
+    # {%- / -%} on the surrounding for-tags. Trimmed at the point of use below instead.
     github_keys: |-
       {% for result in github_keys_fetched.results -%}
       {% for line in result.content.splitlines() if line | trim %}
@@ -70,7 +74,26 @@
       {% endfor %}
     terraform_key_root: 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo ''Please login as the user \"ubuntu\" rather than the user \"root\".'';echo;sleep 10;exit 142" {{ terraform_public_key }} terraform'
     terraform_key_plain: "{{ terraform_public_key }} terraform"
-    permitted_keys_for_account: "{{ github_keys }}\n{{ terraform_key_root if item == 'root' else terraform_key_plain }}"
+    # deploy_ci_keys is only non-empty on hosts (e.g. openaustralia) that
+    # define openaustralia_deploy_ci_keys, and only ever added to the
+    # deploy account - not ubuntu or root.
+    deploy_ci_keys: "{{ (openaustralia_deploy_ci_keys | default([])) | map(attribute='public_key') | list }}"
+    # github_keys's untrimmed trailing newline used to leave a blank line right after
+    # the GitHub users' keys once joined with the rest below - the authorized_key
+    # module rejects that blank entry, and then reports every key after it as part of
+    # that one bad entry. `| trim` here removes it; `select` (with no test) is a second,
+    # defensive layer that drops any other empty entries before joining.
+    #
+    # This has to be all on one line. A >- folded block scalar here (even one that
+    # reads as "one logical line" to a human) still preserves real newlines around any
+    # more-indented continuation line per YAML's folding rules, and that combination -
+    # real newlines embedded in the Jinja *expression text itself*, immediately before
+    # a join('\n') call - makes Ansible's templating literally double-escape that one
+    # join into a two-character \n in the output instead of a real line break, corrupting
+    # authorized_keys with two keys glued onto the same line. Reproduced and confirmed
+    # against a real Ansible run (not just plain Jinja2, which does not show this) -
+    # folding the expression back onto one line is what actually fixes it.
+    permitted_keys_for_account: "{{ ([github_keys | trim] + (deploy_ci_keys if item == 'deploy' else []) + [terraform_key_root if item == 'root' else terraform_key_plain]) | select | join('\n') }}"
   loop:
     - deploy
     - ubuntu

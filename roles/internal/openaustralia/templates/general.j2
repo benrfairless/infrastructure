@@ -42,6 +42,12 @@ define ("DEVSITE", false);
 // Add this and a number to the URL (eg '?debug=1') to view debug info.
 define ("DEBUGTAG", 'debug');
 
+// Sentry DSN for error/exception reporting. sentry_dsn is templated from
+// sentry_secret_key/sentry_project_id (group_vars/openaustralia.yml) and
+// sentry_host (group_vars/all.yml). Empty string disables the SDK if unset.
+define ("SENTRY_DSN", "{{ sentry_dsn | default('') }}");
+define ("SENTRY_ENVIRONMENT", "{{ stage }}");
+
 // Timezone (only works in PHP5)
 define ("TIMEZONE", "Australia/Sydney");
 

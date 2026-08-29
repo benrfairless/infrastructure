@@ -247,6 +247,50 @@
     update_cache: true
     cache_valid_time: 3600
 
+# Node.js/npm is invoked by Capistrano's deploy:npm_build_css task to build
+# twfy's Tailwind CSS. Without this the deploy fails with "npm: command not
+# found". Jammy's packaged npm/nodejs is old (12.x) - below tailwindcss's
+# engines.node >=14 - so install from NodeSource instead, pinned to
+# nodejs_version (group_vars/openaustralia.yml), the same way xapian_version
+# and php_version are pinned.
+- name: Install prerequisites for the NodeSource apt repo
+  tags: npm
+  apt:
+    name:
+      - ca-certificates
+      - gnupg
+    state: present
+
+- name: Ensure /etc/apt/keyrings exists
+  tags: npm
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download and dearmor the NodeSource GPG key
+  tags: npm
+  shell: |
+    set -o pipefail
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/keyrings/nodesource.gpg
+
+- name: Add the NodeSource apt repository, pinned to nodejs_version
+  tags: npm
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }}.x nodistro main"
+    filename: nodesource
+    state: present
+    update_cache: true
+
+- name: Install Node.js (includes npm) from NodeSource
+  tags: npm
+  apt:
+    name: nodejs
+    state: present
+
 - name: Set default PHP version
   tags: xapian
   community.general.alternatives:

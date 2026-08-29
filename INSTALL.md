@@ -42,7 +42,14 @@
   the RDS admin password and the Cloudflare and Linode API tokens — are rendered into `terraform/secrets.auto.tfvars`
   from 1Password by `make tf-secrets`.
 - For AWS's SSM Session Manager access (replacing SSH), you'll need
-  the [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html).
+  the [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) —
+  not packaged in Ubuntu's apt repos, install the `.deb` directly:
+
+  ```bash
+  curl -fsSL "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o session-manager-plugin.deb
+  sudo dpkg -i session-manager-plugin.deb
+  ```
+
   Run `make aws-check` to confirm it and the AWS CLI are both installed.
 - `jq` must be installed for `terraform/prepkey.sh`
 - The key found by the `terraform/prepkey.sh` script should be
@@ -77,7 +84,11 @@ the **DevOps** 1Password vault and rendered by `make tf-secrets`. Install and co
 - **AWS CLI (`aws`)** — required for Terraform's AWS provider and for reading S3-backed Terraform state.
   Install using the official
   [Installing or updating to the latest version of the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-  instructions.
+  instructions, **not** your distro's package manager — `make aws-check` requires 2.32.0+ for `aws login`, and e.g.
+  Ubuntu's `apt` package lags well behind that. If `aws --version` still shows an old version after installing,
+  check `which -a aws`: a pre-existing apt install at `/usr/bin/aws` can shadow the official one at
+  `/usr/local/bin/aws` if it comes first on `PATH` — remove the apt package (`sudo apt remove awscli`) or reorder
+  `PATH` so `/usr/local/bin` wins.
     - We recommend you sign in with [`aws login --profile oaf`](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sign-in.html)
       which uses a browser-based authentication flow (supporting MFA) to provide temporary credentials.
     - Terraform doesn't understand its `login_session` credentials directly yet, so bridge them by editing
