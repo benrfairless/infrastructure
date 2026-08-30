@@ -258,3 +258,9 @@ sentry_project_id: !vault |
   3030666161326235350a363233303537383661313561653539313263363061643564633565643461
   64643865356235383963353739613437636166393836663534343566313637366463
 
+# Plausible.io Cloud analytics - openaustralia/twfy#235. The "pa-..." fragment of
+# https://plausible.io/js/pa-....js, from Plausible's own dashboard - plain, not
+# vault-encrypted, since it's already public: it's embedded directly in every
+# page's own HTML/script src, same status as sentry_browser_public_key above.
+plausible_script_id: "pa-eMxq8hHU91Qjn6D5vwWZa"
+

@@ -48,6 +48,11 @@ define ("DEBUGTAG", 'debug');
 define ("SENTRY_DSN", "{{ sentry_dsn | default('') }}");
 define ("SENTRY_ENVIRONMENT", "{{ stage }}");
 
+// Plausible.io Cloud analytics - openaustralia/twfy#235. plausible_script_id
+// (group_vars/openaustralia.yml) is plain, not a secret - see that variable's own
+// comment. Empty string disables PlausibleView::renderTag() if unset.
+define ("PLAUSIBLE_SCRIPT_ID", "{{ plausible_script_id | default('') }}");
+
 // Timezone (only works in PHP5)
 define ("TIMEZONE", "Australia/Sydney");
 
