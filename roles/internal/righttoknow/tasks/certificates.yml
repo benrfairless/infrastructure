@@ -43,18 +43,18 @@
   set_fact:
     staging_certs:
       - email: 'contact@oaf.{{ base_domain }}'
-        domains: 
+        domains:
           - "{{ righttoknow_domain }}"
-          - "www.{{ righttoknow_domain }}"
+          - "{{ www_prefix }}{{ righttoknow_domain }}"
   when: "'righttoknow_staging' in group_names"
 
 - name: Set certificate configuration for production
   set_fact:
     production_certs:
       - email: 'contact@oaf.{{ base_domain }}'
-        domains: 
+        domains:
           - "{{ righttoknow_domain }}"
-          - "www.{{ righttoknow_domain }}"
+          - "{{ www_prefix }}{{ righttoknow_domain }}"
           - "{{ server_hostname }}"
   when: "'righttoknow_production' in group_names"
 
