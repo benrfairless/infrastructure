@@ -1,10 +1,10 @@
 ---
 
 - name: Ensure libselinux-python is installed
-  ansible.builtin.dnf: name=libselinux-python
+  ansible.builtin.yum: name=libselinux-python
 
 - name: Install EPEL repo
-  ansible.builtin.dnf:
+  ansible.builtin.yum:
     name: >-
       https://dl.fedoraproject.org/pub/epel/epel-release-latest-
       {{- ansible_distribution_major_version }}.noarch.rpm
@@ -16,7 +16,7 @@
     state: present
 
 - name: Install dependencies
-  ansible.builtin.dnf: "name={{ item }}"
+  ansible.builtin.yum: "name={{ item }}"
   with_items:
     - cronie
     - gzip
@@ -28,4 +28,4 @@
   when: backup_duplicity_version
 
 - name: Install duplicity
-  ansible.builtin.dnf: "name={{ backup_duplicity_pkg }}"
+  ansible.builtin.yum: "name={{ backup_duplicity_pkg }}"

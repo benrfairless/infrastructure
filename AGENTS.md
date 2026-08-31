@@ -165,6 +165,31 @@ distinct and out of the YAML/JSON linters. If a file has no Jinja2 (`{{ }}`/`{% 
 in the role's `files/` directory and use `copy:` instead. `make template-check` enforces this in CI for
 `roles/internal/*/templates/` (not `roles/external/`).
 
+### Module names must be fully qualified
+
+Every module action **must** name its Ansible collection in full - `ansible.builtin.template:`, not `template:`;
+`community.mysql.mysql_user:`, not `mysql_user:`. Ansible collections in use: `ansible.builtin`, `ansible.posix`,
+`community.general`, `community.mysql`, `community.postgresql`, `community.docker`, plus `amazon.aws`/
+`community.aws` (pinned in `roles/requirements.yml`).
+
+`include_tasks`, `import_tasks`, `include_role`, `import_role` and `meta` are the sole exception and keep their
+short names until the toolchain bump - the pinned ansible-lint 5.4 fails on the qualified spellings.
+
+Two traps, both of which have already bitten this repo - see
+`docs/adr/0004-ansible-modules-use-fqcn.md`:
+
+- **The pinned ansible-lint 5.4 has no `fqcn` rule, so CI does not catch a bare module name.** `make ansible-lint`
+  passing is not evidence the convention holds. Check task-level keys by eye (or with a modern ansible-lint) when
+  you add or review tasks, and expect branches cut before the sweep to reintroduce bare names on merge.
+- **Qualifying a module must never change which module runs.** Modern ansible-lint resolves `yum` to
+  `ansible.builtin.dnf`; on our pinned Ansible 2.10 those are two different modules and `ansible.builtin.yum`
+  exists in its own right. Take the original name and prepend the Ansible collection - never accept a tool's
+  substitution.
+
+Only the module key at task level gets qualified. Parameters that share a module's name (`command:` inside
+`community.docker.docker_container:`, `file:`, `group:`, `user:`) must be left alone.
+`.venv/bin/ansible-doc <fully.qualified.name>` confirms a name resolves.
+
 ### Deployment split by app
 
 Each application repo drives its own Capistrano deploy against servers this repo provisions:

@@ -120,38 +120,38 @@
     mode: '0644'
 
 - name: Install the SMTP certificate sync script
-  template:
+  ansible.builtin.template:
     src: sync-smtp-certificate.sh.j2
     dest: /usr/local/bin/sync-smtp-certificate
     mode: '0755'
 
 - name: Sync the SMTP certificate
-  command: sync-smtp-certificate
+  ansible.builtin.command: sync-smtp-certificate
   register: postal_smtp_certificate_sync
   changed_when: postal_smtp_certificate_sync.stdout == "updated"
 
 # Caddy renews the Let's Encrypt certificate automatically; this picks up
 # the renewed certificate for the SMTP server
 - name: Sync the SMTP certificate daily
-  cron:
+  ansible.builtin.cron:
     name: Sync postal SMTP certificate
     special_time: daily
     job: /usr/local/bin/sync-smtp-certificate > /dev/null
 
 - name: Install the SMTP submission port redirect script
-  template:
+  ansible.builtin.template:
     src: redirect-smtp-port.sh.j2
     dest: /usr/local/bin/redirect-smtp-port
     mode: '0755'
 
 - name: Install the SMTP submission port redirect service
-  template:
+  ansible.builtin.template:
     src: redirect-smtp-port.service.j2
     dest: /etc/systemd/system/redirect-smtp-port.service
     mode: '0644'
 
 - name: Enable the SMTP submission port redirect
-  systemd:
+  ansible.builtin.systemd:
     name: redirect-smtp-port
     enabled: true
     state: started
