@@ -10,20 +10,6 @@ dependencies:
         - version: "{{ ruby_version_production }}"
     rbenv_users:
       - deploy
-  # Duplicity backup disabled - replaced by restic (Dec 2025)
-  # Duplicity used 311 GiB vs restic 63 GiB for same data
-  # - role: oaf.backup
-  #   backup_profiles:
-  #     - name: righttoknow_data
-  #       schedule: 0 2 * * *
-  #       source: /data
-  #       target: "s3://s3.amazonaws.com/oaf-backups/righttoknow/{{ log_name }}/data"
-  #       exclude:
-  #         - "**/bundle"
-  #         - "**/cache"
-  #       temp_dir: /data/backup_tmp
-  #       arch_dir: /data/backup_cache
-  #   when: ansible_distribution_release in ['bionic', 'jammy'] and 'righttoknow_production' in group_names
 
   - role: oaf.restic
     restic_profiles:
