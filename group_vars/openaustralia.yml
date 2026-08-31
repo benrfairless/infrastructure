@@ -86,8 +86,8 @@ logs:
    #   log_stream_name: "{{ log_name }}"
    #   timestamp_format: "%b %d %H:%M:%S"
 
-   - file_path: /var/log/restic/openaustralia.log
-     log_group_name: /var/log/restic/openaustralia.log
+   - file_path: /var/log/restic/openaustralia_data.log
+     log_group_name: /var/log/restic/openaustralia_data.log
      log_stream_name: "{{ log_name }}"
      timestamp_format: "%b %d %H:%M:%S"
 
