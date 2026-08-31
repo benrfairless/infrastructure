@@ -1,0 +1,45 @@
+#!/bin/sh
+# {{ ansible_managed }}
+#
+# Postal's SMTP server serves STARTTLS with the certificate at
+# /opt/postal/config/smtp.cert + smtp.key (postal's default paths). Caddy
+# already obtains and renews a Let's Encrypt certificate for
+# {{ postal_web_hostname }} for the web interface, so this script copies it
+# across whenever it changes. On a fresh install, before Caddy has obtained
+# the certificate, it generates a self-signed one so the SMTP server can
+# start; the real certificate replaces it on the next (daily) run.
+set -e
+
+config_dir=/opt/postal/config
+hostname="{{ postal_web_hostname }}"
+caddy_cert_dir="/opt/postal/caddy-data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$hostname"
+
+updated=""
+
+if [ -f "$caddy_cert_dir/$hostname.crt" ]; then
+  if ! cmp -s "$caddy_cert_dir/$hostname.crt" "$config_dir/smtp.cert" \
+    || ! cmp -s "$caddy_cert_dir/$hostname.key" "$config_dir/smtp.key"; then
+    # 644 rather than something stricter because the certificate and key are
+    # read by a non-root user inside the postal containers (like signing.key)
+    install -m 644 "$caddy_cert_dir/$hostname.crt" "$config_dir/smtp.cert"
+    install -m 644 "$caddy_cert_dir/$hostname.key" "$config_dir/smtp.key"
+    updated=yes
+  fi
+elif [ ! -f "$config_dir/smtp.cert" ]; then
+  openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+    -subj "/CN=$hostname" \
+    -keyout "$config_dir/smtp.key" -out "$config_dir/smtp.cert" 2> /dev/null
+  chmod 644 "$config_dir/smtp.cert" "$config_dir/smtp.key"
+  updated=yes
+fi
+
+if [ -n "$updated" ]; then
+  # Postal only reads the certificate at startup. Skip the restart during
+  # initial provisioning, when postal isn't running yet.
+  if [ -n "$(docker ps -q -f name=postal-smtp)" ]; then
+    postal restart
+  fi
+  echo updated
+else
+  echo unchanged
+fi

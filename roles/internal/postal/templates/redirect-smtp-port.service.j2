@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Redirect SMTP submission port {{ postal_smtp_submission_port }} to postal's SMTP listener
+After=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/redirect-smtp-port
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

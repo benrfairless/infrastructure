@@ -9,6 +9,12 @@ postal_version: 3.3.7
 postal_mariadb_image: mariadb:11.4
 postal_caddy_image: caddy:2
 
+# Postal's SMTP server listens on 25, but AWS EC2 blocks outbound port 25 by
+# default so the apps submit mail on this port instead (as they did with
+# cuttlefish). The host redirects it to 25 with iptables. If you change this,
+# clean up the old iptables rules on the server by hand (or reboot it).
+postal_smtp_submission_port: 2525
+
 # Postal requires this to be at least 10x the size of the largest
 # message you intend to send
 postal_mariadb_innodb_log_file_size: 256M
@@ -21,3 +27,14 @@ postal_smtp_from_address: postal@oaf.org.au
 # Stop docker container logs filling the disk
 postal_docker_log_max_size: 50m
 postal_docker_log_max_file: "5"
+
+# Per-application click/open tracking hostnames, served by Caddy (which
+# obtains a Let's Encrypt certificate for each). Each one needs a CNAME to
+# track.{{ postal_web_hostname }} in its domain's dns.tf and a track domain
+# on the application's mail server in the postal web interface.
+postal_track_domains:
+  - email3.theyvoteforyou.org.au
+  - email3.openaustralia.org
+  - email3.openaustralia.org.au
+  - email3.morph.io
+  - email3.planningalerts.org.au

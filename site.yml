@@ -172,35 +172,6 @@
       when: swap_file_size_mb is defined or (swap_file_state | default('present')) == 'absent'
 
 - hosts: "all:!righttoknow" # Exclude RTK - Workaround for Issue #523
-  name: "Remove unused ruby managers"
-  become: true
-  tags:
-    - cleanup
-    - ruby
-  tasks:
-    - name: Remove rbenv
-      tags:
-        - rbenv
-      import_role:
-        name: internal/remove_rbenv
-      vars:
-        rbenv_users:
-          - deploy
-      when: "ruby_manager != 'rbenv'"
-    - name: Remove rvm
-      import_role:
-        name: internal/remove_rvm
-      tags:
-        - rvm
-      when: "ruby_manager != 'rvm'"
-    - name: Remove mise
-      import_role:
-        name: internal/remove_mise
-      tags:
-        - mise
-      when: "ruby_manager != 'mise'"
-
-- hosts: "all:!righttoknow" # Exclude RTK - Workaround for Issue #523
   name: "Setup ruby managers and install versions"
   become: true
   tags:
