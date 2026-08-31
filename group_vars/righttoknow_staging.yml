@@ -14,9 +14,6 @@ cron_enabled: true
 # Both staging and production environments run in Rails production mode
 rails_env: production
 
-# Disable backups for staging
-backup_profiles: []
-
 # Second sentry key (because both shar rails_env=production)
 
 sentry_secret_key: !vault |

@@ -22,10 +22,6 @@ backup_target_pass: !vault |
           3339383334326133300a376235626262343236383936616164646665363965373633633330656636
           66333264353765356232383765393834373736633533613238313335636335376638363131663538
           6339643433633432366238306663396437343936383330306231
-# Keep all backups around for six months by default
-backup_max_age: 6M
-backup_max_full_backups: 6
-backup_full_max_age: 1M
 
 # inventory_hostname isn't safe for identifiers that need to persist across the static-to-dynamic
 # inventory migration or an instance replacement - use public_hostname (not unique) or log_name

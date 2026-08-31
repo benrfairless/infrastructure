@@ -23,13 +23,6 @@ certbot_dns_cloudflare_api_token: !vault |
           32636331393462633363336666396636373164303635366362373064653564333763633332643161
           366231316234343536666436353035653665
 
-backup_gpg_pw: !vault |
-          $ANSIBLE_VAULT;1.2;AES256;rtk
-          32323937363233343737353934643134346166363339306232613066396233303862313863323364
-          3231653337363637346631396438323932663935343866620a663236663734616266396565386539
-          31663863363130333030633161636231633632306434633631616666616266326538376566663334
-          3533366366643466650a333231326165363431633361316234663134336262363266636337633335
-          32346538656134376532613931663531643665373233363565343166636366646439
 restic_password: !vault |
           $ANSIBLE_VAULT;1.2;AES256;rtk
           36613666323265616162623461303738616630376366646633363764373131653231636364303132
@@ -194,12 +187,6 @@ logs:
     log_group_name: /var/log/syslog
     log_stream_name: "{{ log_name }}"
     timestamp_format: "%b %d %H:%M:%S"
-
-  # Duplicity disabled Dec 2025 - replaced by restic
-  # - file_path: /var/log/duply/righttoknow_data.log
-  #   log_group_name: /var/log/duply/righttoknow_data.log
-  #   log_stream_name: "{{ log_name }}"
-  #   timestamp_format: "%b %d %H:%M:%S"
 
   - file_path: /var/log/restic/righttoknow.log
     log_group_name: /var/log/restic/righttoknow.log
