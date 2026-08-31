@@ -40,6 +40,25 @@ restic_password: !vault |
 cron_enabled_for:
   production: true
   staging: false
+
+# Dedicated, restricted-purpose SSH keys for the GitHub Actions deploy
+# workflows in the openaustralia repo (.github/workflows/deploy-*.yml).
+# Not personal keys - each is scoped to one environment's secret, so a
+# leaked staging key doesn't also grant production. Consumed by the
+# deploy-user role, which is the only thing allowed to touch the deploy
+# user's authorized_keys (see that role for why). See
+# openaustralia/openaustralia#934.
+#
+# These are the public halves only. The private halves are not stored
+# anywhere in this repo - they live in the openaustralia repo's staging
+# and production GitHub Environment secrets (DEPLOY_SSH_KEY), and a
+# backup copy of each is kept in the DevOps 1Password vault ("GitHub
+# Actions - openaustralia staging/production deploy key").
+openaustralia_deploy_ci_keys:
+  - name: github-actions-staging-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGEkkqBZgj7tpB7UAbbW0PPWHE8fOhCKxEmVElu3+Ic github-actions-staging-deploy"
+  - name: github-actions-production-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMqWBWzN/Nqg34SyqyMkqamHuzJOm5G4JrRZKLEtQ+AZ github-actions-production-deploy"
 morph_api_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66623039363037386530623963626464303838643739313264356166376639346133656337663838
@@ -133,6 +152,12 @@ domains_for_certbot:
 # PHP has two version numbers :( - make sure they are in sync
 php_version: 8.3
 php_api_version: "20230831"
+
+# Node.js major version installed from NodeSource for twfy's Tailwind CSS build
+# (deploy:npm_build_css). Matches node-version in twfy's own
+# .github/workflows/php.yml, which builds and tests the same npm run
+# build:css step in CI - keep the two in sync.
+nodejs_version: 22
 
 # Based on aws_eip.production.public_ip and CNAMES in terraform/openaustralia/dns.tf
 

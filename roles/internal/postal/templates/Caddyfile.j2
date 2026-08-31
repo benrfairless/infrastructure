@@ -3,7 +3,9 @@
   reverse_proxy 127.0.0.1:5000
 }
 
-track.{{ postal_web_hostname }} {
+# Click/open tracking hosts: postal's own track domain plus each
+# application's track domain (see postal_track_domains)
+{{ (["track." + postal_web_hostname] + postal_track_domains) | join(", ") }} {
   reverse_proxy 127.0.0.1:5000 {
     header_up X-Postal-Track-Host "1"
   }
