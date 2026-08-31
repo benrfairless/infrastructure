@@ -36,7 +36,7 @@ SITE_NAME: '{{ site_name }}'
 #   DOMAIN: 'www.example.com'
 #
 # ---
-DOMAIN: 'www.{{ domain }}'
+DOMAIN: '{{ www_prefix }}{{ domain }}'
 
 # If true forces everyone (in the production environment) to use encrypted
 # connections (via https) by redirecting unencrypted connections. This is
@@ -1387,3 +1387,8 @@ SENTRY_TRACES_SAMPLE_RATE: {{ sentry_traces_sample_rate }}
 #
 # ---
 SENTRY_JS_LOADER_URL: '{{ sentry_js_loader_url }}'
+
+# Provide /whatismyip endpoint for proxy testing
+#
+# ---
+PROVIDE_WHATISMYIP: false

@@ -188,8 +188,8 @@ logs:
     log_stream_name: "{{ log_name }}"
     timestamp_format: "%b %d %H:%M:%S"
 
-  - file_path: /var/log/restic/righttoknow.log
-    log_group_name: /var/log/restic/righttoknow.log
+  - file_path: /var/log/restic/righttoknow_data.log
+    log_group_name: /var/log/restic/righttoknow_data.log
     log_stream_name: "{{ log_name }}"
     timestamp_format: "%b %d %H:%M:%S"
 
@@ -230,4 +230,3 @@ sentry_project_id: !vault |
   36386530306261333862653935663265353431373966643066366166373836643765306330393338
   3465333737363966360a386537346661653437343932393461366338306365346264393963373334
   66613763393533613430613233303965313731656630323237313065303363343630
-

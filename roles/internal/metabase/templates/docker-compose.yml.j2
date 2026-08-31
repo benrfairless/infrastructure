@@ -11,4 +11,14 @@ services:
       MB_DB_USER: metabase
       MB_DB_PASS: {{ db_password }}
       MB_DB_HOST: {{ db_host }}
+      # Outbound email via postal. Settings provided via environment variables
+      # become read-only in the metabase admin UI, which is what we want -
+      # this file is the source of truth.
+      MB_EMAIL_SMTP_HOST: postal.oaf.org.au
+      MB_EMAIL_SMTP_PORT: 2525
+      MB_EMAIL_SMTP_SECURITY: starttls
+      MB_EMAIL_SMTP_USERNAME: {{ smtp_username }}
+      MB_EMAIL_SMTP_PASSWORD: {{ smtp_password }}
+      MB_EMAIL_FROM_ADDRESS: metabase@oaf.org.au
+      MB_EMAIL_FROM_NAME: Metabase
     restart: always
