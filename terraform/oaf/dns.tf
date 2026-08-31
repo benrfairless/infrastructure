@@ -1,5 +1,6 @@
 
 ## oaf.org.au
+
 # A records
 resource "cloudflare_record" "root_primary" {
   zone_id = var.oaf_org_au_zone_id
@@ -27,6 +28,7 @@ resource "cloudflare_record" "www" {
 }
 
 # Google Workspace custom URLs
+# Used for Calendar, Drive, Mail, Groups and Sites.
 resource "cloudflare_record" "google_workspace_calendar" {
   zone_id = var.oaf_org_au_zone_id
   name    = "calendar.oaf.org.au"
@@ -67,6 +69,9 @@ resource "cloudflare_record" "google_workspace_sites" {
   proxied = false
 }
 
+
+# Helpscout DKIM CNAME records. These are used to verify that email sent from Helpscout
+# on behalf of oaf.org.au is legitimate.
 resource "cloudflare_record" "helpscout_dkim_strong1" {
   zone_id = var.oaf_org_au_zone_id
   name    = "strong1._domainkey.oaf.org.au"
@@ -80,6 +85,52 @@ resource "cloudflare_record" "helpscout_dkim_strong2" {
   name    = "strong2._domainkey.oaf.org.au"
   type    = "CNAME"
   value   = "strong2._domainkey.helpscout.net"
+  proxied = false
+}
+
+# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
+# Return-Path domain aligns with the From domain for DMARC
+resource "cloudflare_record" "psrp" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "psrp.oaf.org.au"
+  type    = "CNAME"
+  value   = "rp.postal.oaf.org.au"
+}
+
+# DKIM records for Stripe.
+resource "cloudflare_record" "stripe_dkim" {
+  for_each = toset([
+    "sy3choeuozwrc5nff46a4d5chl6in7hr",
+    "2zmfo57rkzmwlfw4boa5fdu7ejmnrulb",
+    "ngpfnppr33fmdaadwenl3cqxjwrdb6wv",
+    "7nnargc6s4l4jabhwdp3utqupozz6xul",
+    "fz32jcuxb7ytwxflfnuzymb5rqm3snco",
+    "emavrbm6a24zowyv2pgfrqn3ma2xebfh",
+  ])
+
+  zone_id = var.oaf_org_au_zone_id
+  name    = "${each.key}._domainkey.oaf.org.au"
+  type    = "CNAME"
+  value   = "${each.key}.dkim.custom-email-domain.stripe.com"
+  proxied = false
+}
+
+# Stripe's MAIL FROM domain. This also carries the SPF policy authorising Stripe
+# to send, which is why the apex v=spf1 record above needs no Stripe include.
+resource "cloudflare_record" "stripe_bounce" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "bounce.oaf.org.au"
+  type    = "CNAME"
+  value   = "custom-email-domain.stripe.com"
+  proxied = false
+}
+
+# Custom domain for our Kimai Cloud instance.
+resource "cloudflare_record" "kimai_cloud" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "kimai.oaf.org.au"
+  type    = "CNAME"
+  value   = "oaforgau.kimai.cloud"
   proxied = false
 }
 
@@ -107,15 +158,6 @@ resource "cloudflare_record" "postal_domainkey" {
   name    = "postal-vdyoRV._domainkey.oaf.org.au"
   type    = "TXT"
   value   = "v=DKIM1; t=s; h=sha256; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDnfMUJVx836kba6Xgg2EB5Sh0SKnx7gft7TvrstAOdtZeRXJ2ksWYJTDcKq6G15WsWCWrMgAw56x3ViOUmbNMaCxpgwCMtS5qAPmcMy2GKotgJv9yzOcDHhbcvdRYeQNCHGDiQheRjBOLKHkkRgOlhRt4UMuNmQ/ahM5Ld0cr5HwIDAQAB;"
-}
-
-# Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
-# Return-Path domain aligns with the From domain for DMARC
-resource "cloudflare_record" "psrp" {
-  zone_id = var.oaf_org_au_zone_id
-  name    = "psrp.oaf.org.au"
-  type    = "CNAME"
-  value   = "rp.postal.oaf.org.au"
 }
 
 resource "cloudflare_record" "google_site_verification" {
@@ -146,7 +188,6 @@ resource "cloudflare_record" "yahoo_domain_verification" {
   type    = "TXT"
   value   = "yahoo-verification-key=b22Y3XMni7mCqo0n03D0IOvczsLEdMQZ4i+Pt1WMJ0Y="
 }
-
 
 resource "cloudflare_record" "bluesky_domain_verification" {
   zone_id = var.oaf_org_au_zone_id
@@ -207,15 +248,6 @@ resource "cloudflare_record" "slack-domain-verification" {
   value   = "slack-domain-verification=JfbPnX8KjSbj2pDWCfKEJud0IjhrhH6WiMqTDRYH"
 }
 
-# DMARC delegated to Suped via CNAME (https://suped.com/).
-# Record content and policy (p=) are managed in the Suped dashboard, not here.
-resource "cloudflare_record" "dmarc" {
-  zone_id = var.oaf_org_au_zone_id
-  name    = "_dmarc.oaf.org.au"
-  type    = "CNAME"
-  value   = "oaf.org.au.dmarc.dns.suped.com"
-}
-
 # SPF include record containing all A records for OAF services
 # This is used by other domains via "include:_spf1.oaf.org.au"
 # Dynamically includes IPs from:
@@ -243,33 +275,6 @@ resource "cloudflare_record" "stripe_domain_verification" {
   name    = "oaf.org.au"
   type    = "TXT"
   value   = "stripe-verification=415aef2a8e23c6eba13ed66f493149e56cd54e3993d0ceca46261bb308490d1b"
-}
-
-resource "cloudflare_record" "stripe_dkim" {
-  for_each = toset([
-    "sy3choeuozwrc5nff46a4d5chl6in7hr",
-    "2zmfo57rkzmwlfw4boa5fdu7ejmnrulb",
-    "ngpfnppr33fmdaadwenl3cqxjwrdb6wv",
-    "7nnargc6s4l4jabhwdp3utqupozz6xul",
-    "fz32jcuxb7ytwxflfnuzymb5rqm3snco",
-    "emavrbm6a24zowyv2pgfrqn3ma2xebfh",
-  ])
-
-  zone_id = var.oaf_org_au_zone_id
-  name    = "${each.key}._domainkey.oaf.org.au"
-  type    = "CNAME"
-  value   = "${each.key}.dkim.custom-email-domain.stripe.com"
-  proxied = false
-}
-
-# Stripe's MAIL FROM domain. This also carries the SPF policy authorising Stripe
-# to send, which is why the apex v=spf1 record above needs no Stripe include.
-resource "cloudflare_record" "stripe_bounce" {
-  zone_id = var.oaf_org_au_zone_id
-  name    = "bounce.oaf.org.au"
-  type    = "CNAME"
-  value   = "custom-email-domain.stripe.com"
-  proxied = false
 }
 
 ## openaustraliafoundation.org.au
