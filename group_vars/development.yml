@@ -15,3 +15,9 @@ newrelic_license_key: null
 devsite: true
 rds_admin_password: "test_password"
 nrinfragent_state: absent
+
+# Keep restic off dev boxes. This replaces host_vars/righttoknow.test.yml's `backup_enabled: no`, which was the
+# duplicity-era switch. It matters because openaustralia's oaf.restic invocation has no `when:` guard and
+# backup_target_user/backup_target_pass are the live production S3 credentials, so without this a `vagrant
+# provision` would run `restic init` against the real oaf-backups bucket and add a nightly cron pushing to it.
+restic_enabled: false

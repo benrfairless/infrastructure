@@ -137,7 +137,7 @@ by a `wip-<name>` git tag pushed before the change and replaced by the un-prefix
   top of instances Terraform created: packages, users, MySQL/PostgreSQL, nginx/Apache + certbot, cron, backups,
   monitoring. `roles/internal/` are OAF-authored roles — one per service (`righttoknow`, `planningalerts`,
   `theyvoteforyou`, `openaustralia`, `metabase`, `proxy`) plus shared building blocks used across
-  several (`base-server`, `mysql`, `postgresql`, `deploy-user`, `oaf.certbot`, `oaf.backup`, `oaf.restic`,
+  several (`base-server`, `mysql`, `postgresql`, `deploy-user`, `oaf.certbot`, `oaf.restic`,
   `cloudflare_realip`, `awscloudwatch`, `rvm.group`) and a few one-way cleanup roles that uninstall a retired
   tool (`remove_mise`, `remove_rbenv`, `remove_rvm`). `roles/external/` are third-party Galaxy roles installed
   by `make requirements`/`make roles` (not linted, since we don't control their layout).
@@ -146,8 +146,10 @@ by a `wip-<name>` git tag pushed before the change and replaced by the un-prefix
   for stage overrides). `group_vars/all.yml` holds cross-service defaults (backup settings, `github_users` allowed
   to SSH in, etc.). Every Ansible-invoking Makefile target merges two inventory sources: `inventory/ec2-hosts`
   (static) and `inventory/aws_ec2.yml` (dynamic, tag-scoped — see its own header comments for how/why). Migration
-  to the dynamic source is per-host and incremental; `public_hostname` (`group_vars/all.yml`/`ssm.yml`) is a
-  stable identifier for things like backup paths, independent of that migration.
+  to the dynamic source is per-host and incremental. `log_name` (`group_vars/all.yml`/`ssm.yml`) is a stable
+  per-instance identifier for things that must not collide (backup paths, CloudWatch log streams), while
+  `public_hostname` is the deliberately-shared public name, identical across a blue/green fleet. Both are
+  independent of that migration. See `terraform/righttoknow/staging.tf` on why restic keys off `log_name`.
 
 ### Secrets: Ansible Vault with 4 vault IDs
 

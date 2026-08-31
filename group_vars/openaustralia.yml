@@ -22,13 +22,6 @@ openaustralia_staging_mysql_password: !vault |
           36643130626136323831633432383938373331643438383733656464306630643036373065653032
           3030653664373365380a626134353435666632306236363964343337343431356135366634346136
           62643365636162323333393436303231363834323439646563623830636663643066
-backup_gpg_pw: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          38623530393133373134306432376330373236303835363731613939326462633064326466323966
-          3734366632633131663431363935393831303530666236370a643465303036346361666566646361
-          39663261383131313338373231626530383065326230656133333865383966643536616134613663
-          3130363437356231360a626632316266383136643663326239633333356631343462346435316661
-          30393132663263643432643032633731336139343132326362626462373738373132
 restic_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           32323166633732633937306530613139626135613130366335613835323663323233633365376133
@@ -79,12 +72,6 @@ logs:
      log_group_name: /var/log/syslog
      log_stream_name: "{{ log_name }}"
      timestamp_format: "%b %d %H:%M:%S"
-
-   # Duplicity disabled Dec 2025 - replaced by restic
-   # - file_path: /var/log/duply/openaustralia_data.log
-   #   log_group_name: /var/log/duply/openaustralia_data.log
-   #   log_stream_name: "{{ log_name }}"
-   #   timestamp_format: "%b %d %H:%M:%S"
 
    - file_path: /var/log/restic/openaustralia_data.log
      log_group_name: /var/log/restic/openaustralia_data.log
@@ -142,8 +129,6 @@ certbot_email: contact@oaf.org.au
 xapian_version: "1.4.22"
 xapian_bindings_sha256: "6b5454833ac52a3e32c0bb3a7290a5a2b50488d8918f2a45269557e4de9a31e5"
 
-# Disable backups for staging
-backup_profiles: []
 domains_for_certbot:
   - email: contact@oaf.org.au
     domains:
