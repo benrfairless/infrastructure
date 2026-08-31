@@ -88,6 +88,15 @@ resource "cloudflare_record" "helpscout_dkim_strong2" {
   proxied = false
 }
 
+# DMARC delegated to Suped via CNAME (https://suped.com/).
+# Record content and policy (p=) are managed in the Suped dashboard, not here.
+resource "cloudflare_record" "dmarc" {
+  zone_id = var.oaf_org_au_zone_id
+  name    = "_dmarc.oaf.org.au"
+  type    = "CNAME"
+  value   = "oaf.org.au.dmarc.dns.suped.com"
+}
+
 # Custom Return-Path (MAIL FROM) host for mail sent through postal, so the
 # Return-Path domain aligns with the From domain for DMARC
 resource "cloudflare_record" "psrp" {
