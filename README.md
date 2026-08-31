@@ -202,11 +202,42 @@ Deployment is service-specific - see:
 
 ## <a name='backups'></a>Backups
 
-Data directories of servers are backed up to S3 using Duply.
+Data directories are backed up to the `oaf-backups` S3 bucket using [restic](https://restic.net/), configured by
+`roles/internal/oaf.restic`. Two hosts are covered, both backing up `/data`: openaustralia, and righttoknow
+production. Each is a restic profile, `openaustralia_data` and `righttoknow_data`. Right to Know staging and the
+other services (They Vote For You, PlanningAlerts, Metabase, Postal) have no file-level backups; their databases
+are covered by RDS automated snapshots instead.
 
-Using the `data_directory` profile as an example, to run a backup manually you'd log in as root and run `duply data_directory backup`.
+Each profile gets an environment file at `/etc/restic/<profile>.env`, a passphrase file at
+`/etc/restic/<profile>-password`, a wrapper script at `/usr/local/bin/restic-backup-<profile>`, a cron entry in
+`/etc/cron.d/restic-<profile>` running at 03:00, and a log at `/var/log/restic/<profile>.log`. The environment file
+holds the S3 credentials in plaintext, so don't copy it around. Every `restic` command below needs it sourced
+first, which sets the repository, the passphrase file and those credentials.
 
-To restore the latest backup to `/mnt/restore` you'd run `duply data_directory restore /mnt/restore`.
+To run a backup manually, log in as root and run the wrapper. It takes a lockfile, so it won't collide with the
+cron run:
+
+    /usr/local/bin/restic-backup-righttoknow_data
+
+To see what's in the repository:
+
+    source /etc/restic/righttoknow_data.env && restic snapshots
+
+To restore the most recent snapshot to `/mnt/restore`:
+
+    source /etc/restic/righttoknow_data.env && restic restore latest --target /mnt/restore
+
+`restic mount /mnt/restore` instead exposes every snapshot as a browsable filesystem, which is usually the better
+way to retrieve a handful of files. Note that the restore path has not been rehearsed against a live repository, so
+treat a real restore as unproven until someone has done a drill.
+
+Retention and integrity checking run on Sundays only, after that night's backup: `restic forget --keep-daily 7
+--keep-weekly 4 --keep-monthly 6 --prune`, then `restic check`.
+
+The repository path is derived from `log_name`, not `public_hostname`, so replacing an instance keeps its backup
+history as long as the `LogName` tag is carried over. See the comment in `terraform/righttoknow/staging.tf` and the
+`restic_profiles` blocks in `roles/internal/righttoknow/meta/main.yml` and
+`roles/internal/openaustralia/meta/main.yml`.
 
 ## <a name='git-tags'></a>Git Tags
 
