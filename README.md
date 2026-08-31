@@ -6,6 +6,7 @@
   - [Other Documents](#other-documents)
   - [The tools](#the-tools)
   - [Templates](#templates)
+  - [Module names](#module-names)
   - [Provisioning](#provisioning)
     - [Provisioning local development servers using Vagrant](#provisioning-local-development-servers-using-vagrant)
     - [Provisioning production servers](#provisioning-production-servers)
@@ -84,6 +85,26 @@ un-rendered template.
 role's `templates/` directory does not end in `.j2`, and it runs in CI.
 Third-party roles under `roles/external/` are not checked, as we don't control
 their layout.
+
+## <a name='module-names'></a>Module names
+
+Every module action **must** name its Ansible collection in full - `ansible.builtin.template:`, not
+`template:`; `community.mysql.mysql_user:`, not `mysql_user:`. Modern ansible-lint requires
+it, and the modules that moved out of ansible-core in 2.10 (`mysql_*`, `postgresql_*`,
+`cronvar`, `mount`, the `docker_*` family) only resolve under their bare names via redirects
+that assume the full `ansible` package is installed.
+
+- `include_tasks`, `import_tasks`, `include_role`, `import_role` and `meta` are the one
+  exception and keep their short names for now - the pinned ansible-lint 5.4 fails on the
+  qualified spellings. They get qualified alongside the ansible-lint upgrade.
+- Qualifying a module must never change *which* module runs. Modern ansible-lint suggests
+  `ansible.builtin.dnf` for `yum`, but on our pinned Ansible 2.10 these are two different
+  modules - the correct name is `ansible.builtin.yum`.
+- `.venv/bin/ansible-doc <fully.qualified.name>` confirms a name resolves before you commit it.
+
+Note the pinned ansible-lint 5.4 has no `fqcn` rule, so **CI will not catch a bare module
+name** - this one is on review until the toolchain bump lands. See
+[docs/adr/0004-ansible-modules-use-fqcn.md](docs/adr/0004-ansible-modules-use-fqcn.md).
 
 ## <a name='provisioning'></a>Provisioning
 

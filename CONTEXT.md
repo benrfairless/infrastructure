@@ -92,6 +92,12 @@ _Avoid_: service, product, site
 A Galaxy collection installed into `collections/` by `make requirements`.
 _Avoid_: dependency, package
 
+**Fully qualified collection name (FQCN)**:
+A module named together with the Ansible collection it comes from - `ansible.builtin.template`,
+`community.mysql.mysql_user` - as every module action in this repository must be. The convention, its one
+exception and its traps are in `README.md` and `docs/adr/0004-ansible-modules-use-fqcn.md`.
+_Avoid_: full name, long name, namespaced name
+
 Bare "collection" is never used in this repository, because both senses above are load-bearing: one is org-wide
 naming, the other is an Ansible config path and a gitignored directory. Always qualify it.
 
