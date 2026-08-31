@@ -29,17 +29,14 @@
 
     account default : catch_email
 {% else %}
-    account cuttlefish
+    account postal
     tls on
-    # For some reason we're not able to correctly verify the certs
-    # TODO: Figure out what's going on and fix this
-    #tls_trust_file /etc/ssl/certs/ca-certificates.crt
-    tls_certcheck off
-    host cuttlefish.oaf.org.au
+    tls_trust_file /etc/ssl/certs/ca-certificates.crt
+    host postal.oaf.org.au
     port 2525
     auth on
-    user {{ cuttlefish_username }}
-    password {{ cuttlefish_password }}
+    user {{ smtp_username }}
+    password {{ smtp_password }}
 
-    account default : cuttlefish
+    account default : postal
 {% endif %}

@@ -65,6 +65,22 @@ Shifting traffic from one environment to the other, or from a retired service to
 code is installed by a cutover.
 _Avoid_: blue/green deployment, release, switch
 
+### Mail
+
+**Mail server**:
+A per-application sending unit inside Postal, owning its own credentials, sending domains, suppression list and
+webhooks. Not a host - they all live on one host.
+_Avoid_: app (cuttlefish's word for the same idea), SMTP server (that's the listener they share)
+
+**Suppression list**:
+The per-mail-server list of addresses Postal declines to send to after delivery failures. Mail to a suppressed
+address is held, not silently dropped.
+_Avoid_: deny list (cuttlefish's word), blocklist, blacklist
+
+**Track domain**:
+The per-service hostname that link redirects and open pixels in that service's mail are served from.
+_Avoid_: custom tracking domain (cuttlefish's word)
+
 ### OAF's own words
 
 **OAF collection**:

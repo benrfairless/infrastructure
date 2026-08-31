@@ -40,6 +40,25 @@ restic_password: !vault |
 cron_enabled_for:
   production: true
   staging: false
+
+# Dedicated, restricted-purpose SSH keys for the GitHub Actions deploy
+# workflows in the openaustralia repo (.github/workflows/deploy-*.yml).
+# Not personal keys - each is scoped to one environment's secret, so a
+# leaked staging key doesn't also grant production. Consumed by the
+# deploy-user role, which is the only thing allowed to touch the deploy
+# user's authorized_keys (see that role for why). See
+# openaustralia/openaustralia#934.
+#
+# These are the public halves only. The private halves are not stored
+# anywhere in this repo - they live in the openaustralia repo's staging
+# and production GitHub Environment secrets (DEPLOY_SSH_KEY), and a
+# backup copy of each is kept in the DevOps 1Password vault ("GitHub
+# Actions - openaustralia staging/production deploy key").
+openaustralia_deploy_ci_keys:
+  - name: github-actions-staging-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGEkkqBZgj7tpB7UAbbW0PPWHE8fOhCKxEmVElu3+Ic github-actions-staging-deploy"
+  - name: github-actions-production-deploy
+    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMqWBWzN/Nqg34SyqyMkqamHuzJOm5G4JrRZKLEtQ+AZ github-actions-production-deploy"
 morph_api_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           66623039363037386530623963626464303838643739313264356166376639346133656337663838
@@ -47,14 +66,14 @@ morph_api_key: !vault |
           37623834323437363632616438633663666564313730363362653064363539306634386663396638
           3166633336663738350a313937326333383535316666656335653137366330626337633138323937
           34333461663732616665663737623565383231663263646566393630616336313165
-cuttlefish_username: php_14
-cuttlefish_password: !vault |
+smtp_username: oaf/openaustralia
+smtp_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
-          66376336626264343836383230623963353066653334366338396134633831613235353937663338
-          3432336563366261306136633862306563353333303132310a646166353331663266623362643166
-          30663761383838383466303634633861633434306638313562623465336536633239636466626135
-          6565323435386430340a376161636165346133626232613162343235376631653965666431343039
-          33303432333838663961623138306365306565393665303233633737326633666465
+          61313732643963346461366432366537333666343934383663663239653164303866336562616532
+          3964633232313863643235643134666637653865613063310a643666623734333839336431363230
+          38323462623261633438616631383739663361663535373434633166366238386362356263643633
+          6334663932376330620a343032666136373133626663356636616164663163636161373966636630
+          34663063666665393065306435316435343462666130393333623335633232613262
 logs:
    - file_path: /var/log/syslog
      log_group_name: /var/log/syslog
@@ -67,8 +86,8 @@ logs:
    #   log_stream_name: "{{ log_name }}"
    #   timestamp_format: "%b %d %H:%M:%S"
 
-   - file_path: /var/log/restic/openaustralia.log
-     log_group_name: /var/log/restic/openaustralia.log
+   - file_path: /var/log/restic/openaustralia_data.log
+     log_group_name: /var/log/restic/openaustralia_data.log
      log_stream_name: "{{ log_name }}"
      timestamp_format: "%b %d %H:%M:%S"
 
@@ -239,3 +258,8 @@ sentry_project_id: !vault |
   3030666161326235350a363233303537383661313561653539313263363061643564633565643461
   64643865356235383963353739613437636166393836663534343566313637366463
 
+# Plausible.io Cloud analytics - openaustralia/twfy#235. The "pa-..." fragment of
+# https://plausible.io/js/pa-....js, from Plausible's own dashboard - plain, not
+# vault-encrypted, since it's already public: it's embedded directly in every
+# page's own HTML/script src, same status as sentry_browser_public_key above.
+plausible_script_id: "pa-eMxq8hHU91Qjn6D5vwWZa"
