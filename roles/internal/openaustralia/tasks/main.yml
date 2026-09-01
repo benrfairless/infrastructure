@@ -516,6 +516,7 @@
     certbot_certs: "{{ built_certbot_certs }}"
 
 - name: Copy across the application config
+  tags: general_config
   ansible.builtin.template:
     src: general.j2
     dest: "/srv/www/{{ item }}/shared/general"
